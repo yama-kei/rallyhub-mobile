@@ -298,21 +298,42 @@ export class MatchRepository implements IMatchRepository {
   /**
    * Refresh profile data from Supabase for profiles that don't have a user_id locally.
    * This ensures we have the latest registration status for all players.
+   * 
+   * This method handles two cases:
+   * 1. Local profile exists without user_id - check if user has since registered
+   * 2. Local profile doesn't exist - fetch from Supabase in case it exists there
    */
   private async refreshProfilesFromSupabase(profileIds: string[]): Promise<void> {
     for (const profileId of profileIds) {
       const localProfile = await this.profileRepo.getById(profileId);
       
-      // Only refresh if local profile doesn't have a user_id
-      // (it might have been registered since we last saw it)
-      if (localProfile && localProfile.user_id === null) {
+      // Check if we need to refresh this profile from Supabase:
+      // - Profile doesn't exist locally (was deleted or never saved)
+      // - Profile exists locally but has no user_id (not yet registered)
+      const needsRefresh = !localProfile || localProfile.user_id === null;
+      
+      if (needsRefresh) {
         try {
+          console.log(`[MatchRepository] Checking Supabase for profile ${profileId} (local exists: ${!!localProfile}, local user_id: ${localProfile?.user_id ?? 'none'})`);
           const remoteProfile = await this.profileRepo.fetchProfileByIdFromSupabase(profileId);
           
-          // If we found a remote profile with a user_id, update local storage
-          if (remoteProfile && remoteProfile.user_id !== null) {
-            console.log(`[MatchRepository] Profile ${profileId} now has user_id, updating local storage`);
-            await this.profileRepo.save(remoteProfile);
+          if (remoteProfile) {
+            // If remote profile has a user_id, save it to local storage
+            if (remoteProfile.user_id !== null) {
+              console.log(`[MatchRepository] Profile ${profileId} found in Supabase with user_id, updating local storage`);
+              await this.profileRepo.save(remoteProfile);
+            } else {
+              // Remote profile exists but without user_id - save it if we don't have it locally
+              // This ensures we have the latest display_name and other fields
+              if (!localProfile) {
+                console.log(`[MatchRepository] Profile ${profileId} found in Supabase (no user_id), saving to local storage`);
+                await this.profileRepo.save(remoteProfile);
+              } else {
+                console.log(`[MatchRepository] Profile ${profileId} found in Supabase but still has no user_id`);
+              }
+            }
+          } else {
+            console.log(`[MatchRepository] Profile ${profileId} not found in Supabase`);
           }
         } catch (err) {
           console.error(`[MatchRepository] Failed to refresh profile ${profileId} from Supabase:`, err);
