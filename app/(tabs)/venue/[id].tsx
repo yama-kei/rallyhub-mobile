@@ -78,14 +78,19 @@ export default function VenueDetailScreen() {
   }, [loadVenue]);
 
   // Load profile data on mount
+  // Note: loadLink and loadProfiles are stable references from Zustand stores
   useEffect(() => {
     loadLink();
     loadProfiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
     loadVenue();
+    // Also refresh profile data to sync default venue state
+    loadLink();
+    loadProfiles();
   };
 
   // -------------------------------
