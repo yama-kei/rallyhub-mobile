@@ -179,6 +179,11 @@ export default function ProfileScreen() {
                 title="Create Venue (Test)"
                 onPress={() => router.push("/venue/create")}
               />
+              <View style={{ height: 12 }} />
+              <Button
+                title="Browse Venues (Test)"
+                onPress={() => router.push("/venue")}
+              />
             </View>
 
             {/* ---- SIGNED IN ---- */}
