@@ -47,10 +47,10 @@ export default function VenueCreateScreen() {
     useEffect(() => {
         setFormValues((prev) => ({
             ...prev,
-            ...(params.name && { name: params.name }),
-            ...(params.address && { address: params.address }),
-            ...(params.latitude && { latitude: params.latitude }),
-            ...(params.longitude && { longitude: params.longitude }),
+            ...(params.name !== undefined && { name: params.name }),
+            ...(params.address !== undefined && { address: params.address }),
+            ...(params.latitude !== undefined && { latitude: params.latitude }),
+            ...(params.longitude !== undefined && { longitude: params.longitude }),
         }));
     }, [params.name, params.address, params.latitude, params.longitude]);
 

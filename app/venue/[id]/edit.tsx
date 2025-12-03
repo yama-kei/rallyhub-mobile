@@ -164,10 +164,10 @@ export default function EditVenueScreen() {
   useEffect(() => {
     setFormValues((prev) => ({
       ...prev,
-      ...(pName && { name: pName }),
-      ...(pAddress && { address: pAddress }),
-      ...(pLat && { latitude: pLat }),
-      ...(pLng && { longitude: pLng }),
+      ...(pName !== undefined && { name: pName }),
+      ...(pAddress !== undefined && { address: pAddress }),
+      ...(pLat !== undefined && { latitude: pLat }),
+      ...(pLng !== undefined && { longitude: pLng }),
     }));
   }, [pName, pAddress, pLat, pLng]);
 
