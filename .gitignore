@@ -16,6 +16,8 @@ pnpm-lock.yaml
 .expo-internal/
 .expo-settings/
 
+expo-env.d.ts
+
 # Auto generated
 .expo/*.json
 .expo/web-build/
@@ -31,6 +33,8 @@ web-build/
 *.packager
 *.bundle
 *.jsbundle
+android/
+ios/
 
 gradle.properties
 
