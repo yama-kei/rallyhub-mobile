@@ -19,13 +19,18 @@ function AppContent() {
       const username = await AsyncStorage.getItem("username");
 
       if (!username) {
-        // Only redirect when we are NOT inside profile/setup already
+        // Only redirect when we are NOT inside profile/setup or profile/sign-in already
         const inSetup =
           segments.length >= 2 &&
           segments[0] === "profile" &&
           segments.at(1) === "setup";
 
-        if (!inSetup) {
+        const inSignIn =
+          segments.length >= 2 &&
+          segments[0] === "profile" &&
+          segments.at(1) === "sign-in";
+
+        if (!inSetup && !inSignIn) {
           console.log("Redirecting to profile/setup...");
           router.replace("/profile/setup");
         }
