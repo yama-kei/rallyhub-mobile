@@ -73,20 +73,24 @@ export default function VenueCreateScreen() {
                 return;
             }
 
-            // Option 1 — Use recommended RPC:
-            const { data, error } = await supabase.rpc("rpc_insert_venue", {
-                p_name: name,
-                p_address: address || null,
-                p_lat: lat,
-                p_lng: lng,
-                p_source: source,
-                p_source_id: sourceId || null,
-                p_num_courts: numCourts ? Number(numCourts) : null,
-                p_surface: surface || null,
-                p_indoor: indoor,
-                p_lighting: lighting,
-                p_created_by: profile.id,
-            });
+            // Use RPC function to insert venue with PostGIS geometry
+            // Type assertion needed due to Supabase RPC type inference limitations
+            const { data, error } = await supabase.rpc(
+                "rpc_insert_venue" as never,
+                {
+                    p_name: name,
+                    p_address: address || null,
+                    p_lat: lat,
+                    p_lng: lng,
+                    p_source: source,
+                    p_source_id: sourceId || null,
+                    p_num_courts: numCourts ? Number(numCourts) : null,
+                    p_surface: surface || null,
+                    p_indoor: indoor,
+                    p_lighting: lighting,
+                    p_created_by: profile.id,
+                } as never
+            );
 
             if (error) throw error;
 

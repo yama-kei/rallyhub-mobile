@@ -289,6 +289,22 @@ export interface Database {
           verified_at: string | null;
         }[];
       };
+      rpc_insert_venue: {
+        Args: {
+          p_name: string;
+          p_address: string | null;
+          p_lat: number;
+          p_lng: number;
+          p_source: string | null;
+          p_source_id: string | null;
+          p_num_courts: number | null;
+          p_surface: string | null;
+          p_indoor: boolean;
+          p_lighting: boolean;
+          p_created_by: string;
+        };
+        Returns: string;
+      };
     };
     Enums: Record<string, unknown>;
     CompositeTypes: Record<string, unknown>;
