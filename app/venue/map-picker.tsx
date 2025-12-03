@@ -14,7 +14,7 @@ import MapView, { Marker, PROVIDER_GOOGLE, Region } from "@/components/NativeMap
 import * as Location from "expo-location";
 import { useEffect } from "react";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY!;
 
@@ -36,6 +36,7 @@ const DEFAULT_REGION: Region = {
 
 export default function VenueMapPickerScreen() {
     const router = useRouter();
+    const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
     const mapRef = useRef<MapView | null>(null);
 
     const [region, setRegion] = useState<Region>(DEFAULT_REGION);
@@ -175,9 +176,12 @@ export default function VenueMapPickerScreen() {
             return;
         }
 
-        // Push back to /venue/create with prefilled params
+        // Determine the target pathname - use returnTo if provided, otherwise default to /venue/create
+        const targetPathname = returnTo ?? "/venue/create";
+
+        // Push back with prefilled params
         router.replace({
-            pathname: "/venue/create",
+            pathname: targetPathname,
             params: {
                 name: selected.name ?? "",
                 address: selected.address ?? "",
@@ -186,8 +190,8 @@ export default function VenueMapPickerScreen() {
                 source: selected.source,
                 source_id: selected.placeId ?? "",
             },
-        });
-    }, [router, selected]);
+        } as Parameters<typeof router.replace>[0]);
+    }, [router, selected, returnTo]);
 
     if (initializing) {
         return (
