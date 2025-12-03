@@ -64,7 +64,7 @@ export default function TabsLayout() {
         name="match"
         options={{
           title: "Match",
-          href: "/match/",
+          href: "/match",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time-outline" color={color} size={size} />
           ),
@@ -87,12 +87,12 @@ export default function TabsLayout() {
         name="leaderboard"
         options={{
           title: "Leaderboard",
-          href: "/leaderboard/",
+          href: "/leaderboard",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons 
-              name="trophy-outline" 
-              size={size} 
-              color={leaderboardIconColor ?? color} 
+            <Ionicons
+              name="trophy-outline"
+              size={size}
+              color={leaderboardIconColor ?? color}
             />
           ),
         }}
@@ -106,6 +106,17 @@ export default function TabsLayout() {
               );
             }
           },
+        }}
+      />
+
+      {/* Venue tab */}
+      <Tabs.Screen
+        name="venue"
+        options={{
+          title: "Venue",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="location-outline" size={size} color={color} />
+          ),
         }}
       />
 

@@ -3,7 +3,11 @@ import {
     StyleSheet,
     Alert,
     ScrollView,
+    TouchableOpacity,
+    View,
+    Text,
 } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -100,6 +104,33 @@ export default function VenueCreateScreen() {
                 return;
             }
 
+            // Check for nearby venues
+            const { data: nearby, error: nearbyError } = await supabase.rpc(
+                "rpc_check_nearby_venues" as never,
+                {
+                    p_lat: lat,
+                    p_lng: lng,
+                    p_radius_meters: 100,
+                } as never
+            );
+
+            if (nearbyError) {
+                console.warn("Failed to check nearby venues", nearbyError);
+                // Optional: decide if we block or continue. For now, let's continue but log it.
+            }
+
+            // Cast nearby to expected type since RPC types are tricky with Supabase JS sometimes
+            const nearbyVenues = nearby as unknown as { name: string; distance_m: number }[] | null;
+
+            if (nearbyVenues && nearbyVenues.length > 0) {
+                const first = nearbyVenues[0];
+                Alert.alert(
+                    "Venue Already Exists",
+                    `A venue named "${first.name}" is only ${first.distance_m.toFixed(1)} meters away.`
+                );
+                return;
+            }
+
             // Use RPC function to insert venue with PostGIS geometry
             // Type assertion needed due to Supabase RPC type inference limitations
             const { data, error } = await supabase.rpc(
@@ -134,6 +165,13 @@ export default function VenueCreateScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.title}>Create Venue</Text>
+                <View style={{ width: 50 }} />
+            </View>
             <ScrollView contentContainerStyle={styles.scroll}>
                 <VenueForm
                     values={formValues}
@@ -149,6 +187,24 @@ export default function VenueCreateScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
+
+    container: { flex: 1, backgroundColor: "#fff" },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: "#eee",
+    },
+    cancelText: {
+        fontSize: 16,
+        color: "#666",
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: "600",
+    },
     scroll: { padding: 16 },
 });

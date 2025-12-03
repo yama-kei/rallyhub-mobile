@@ -16,6 +16,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import type { Database } from "@/lib/supabase/types";
+import { useAuth } from "@/lib/auth/auth";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 type Venue = Database["public"]["Tables"]["venues"]["Row"];
 
@@ -25,6 +27,7 @@ const DEFAULT_COORDINATES: [number, number] = [-122.143, 37.4419];
 export default function VenueDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { session } = useAuth();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -80,9 +83,9 @@ export default function VenueDetailScreen() {
     );
   }
 
-  // Parse coordinates (PostGIS)
-  const geom = venue.geom as { coordinates?: [number, number] } | null;
-  const [lng, lat] = geom?.coordinates ?? DEFAULT_COORDINATES;
+  // Use generated columns for coordinates
+  const lat = venue.lat ?? DEFAULT_COORDINATES[1];
+  const lng = venue.lng ?? DEFAULT_COORDINATES[0];
 
   // Open external maps
   const openInMaps = async () => {
@@ -117,7 +120,20 @@ export default function VenueDetailScreen() {
         }
       >
         {/* Title */}
-        <Text style={styles.title}>{venue.name}</Text>
+        {/* Title Row */}
+        <View style={styles.headerRow}>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 8 }}>
+              <Ionicons name="chevron-back" size={28} color="#2563EB" />
+            </TouchableOpacity>
+            <Text style={styles.title}>{venue.name}</Text>
+          </View>
+          {session?.user.id === venue.created_by && (
+            <TouchableOpacity onPress={() => router.push(`/venue/${id}/edit`)}>
+              <Ionicons name="create-outline" size={24} color="#2563EB" />
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Address */}
         <Text style={styles.address}>
@@ -201,10 +217,17 @@ const styles = StyleSheet.create({
   },
 
   // Title
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
   title: {
     fontSize: 28,
     fontWeight: "700",
-    marginBottom: 6,
+    flex: 1, // Allow text to wrap if needed
+    marginRight: 8,
   },
   address: {
     fontSize: 16,

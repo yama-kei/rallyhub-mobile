@@ -50,6 +50,11 @@ export function VenueForm({
 
     return (
         <View style={styles.form}>
+            {/* Map Picker - Moved to top */}
+            <TouchableOpacity style={styles.mapButton} onPress={onPressMap}>
+                <Text style={styles.mapButtonText}>Select Location on Map</Text>
+            </TouchableOpacity>
+
             {/* Name */}
             <Text style={styles.label}>Venue Name *</Text>
             <TextInput
@@ -59,35 +64,28 @@ export function VenueForm({
                 placeholder="Venue name"
             />
 
-            {/* Address */}
+            {/* Address - Read only */}
             <Text style={styles.label}>Address</Text>
             <TextInput
-                style={styles.input}
+                style={[styles.input, styles.inputDisabled]}
                 value={values.address}
-                onChangeText={(t) => onChange("address", t)}
-                placeholder="Address"
+                editable={false}
+                placeholder="Address (select from map)"
             />
 
-            {/* Map Picker */}
-            <TouchableOpacity style={styles.mapButton} onPress={onPressMap}>
-                <Text style={styles.mapButtonText}>Select Location on Map</Text>
-            </TouchableOpacity>
-
-            {/* Coordinates */}
+            {/* Coordinates - Read only */}
             <Text style={styles.label}>Latitude</Text>
             <TextInput
-                style={styles.input}
+                style={[styles.input, styles.inputDisabled]}
                 value={values.latitude}
-                onChangeText={(t) => onChange("latitude", t)}
-                keyboardType="numeric"
+                editable={false}
             />
 
             <Text style={styles.label}>Longitude</Text>
             <TextInput
-                style={styles.input}
+                style={[styles.input, styles.inputDisabled]}
                 value={values.longitude}
-                onChangeText={(t) => onChange("longitude", t)}
-                keyboardType="numeric"
+                editable={false}
             />
 
             {/* Optional fields */}
@@ -154,6 +152,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderWidth: 1,
         borderColor: "#ddd",
+    },
+    inputDisabled: {
+        backgroundColor: "#f3f4f6",
+        color: "#9ca3af",
     },
     mapButton: {
         marginTop: 12,

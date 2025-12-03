@@ -82,6 +82,8 @@ export interface Database {
           canonical_name: string | null;
           display_name: string | null;
           address: string | null;
+          lat: number | null;
+          lng: number | null;
           geom: unknown | null;
           source: string | null;
           source_id: string | null;
@@ -309,6 +311,18 @@ export interface Database {
           p_created_by: string;
         };
         Returns: string;
+      };
+      rpc_check_nearby_venues: {
+        Args: {
+          p_lat: number;
+          p_lng: number;
+          p_radius_meters?: number;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          distance_m: number;
+        }[];
       };
     };
     Enums: Record<string, unknown>;

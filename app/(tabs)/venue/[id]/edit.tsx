@@ -4,7 +4,11 @@ import {
   ScrollView,
   Alert,
   RefreshControl,
+  TouchableOpacity,
+  View,
+  Text,
 } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase/supabaseClient";
@@ -176,6 +180,13 @@ export default function EditVenueScreen() {
   // -----------------------------
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Edit Venue</Text>
+        <View style={{ width: 50 }} />
+      </View>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
@@ -201,6 +212,23 @@ export default function EditVenueScreen() {
 // Styles
 // -----------------------------
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  cancelText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
   scroll: { padding: 16 },
 });
