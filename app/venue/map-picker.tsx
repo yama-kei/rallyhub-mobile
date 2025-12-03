@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Keyboard,
     Platform,
     StyleSheet,
     Text,
@@ -142,24 +143,31 @@ export default function VenueMapPickerScreen() {
         []
     );
 
-    const handleMapPress = useCallback(
+    const handlePoiClick = useCallback(
         async (event: any) => {
-            const { latitude, longitude } = event.nativeEvent.coordinate;
+            const { coordinate, name, placeId } = event.nativeEvent;
+            const { latitude, longitude } = coordinate;
 
             // Try to find an address for this coordinate
             const geocodeResult = await reverseGeocode(latitude, longitude);
 
             setSelected({
-                name: geocodeResult?.address ?? "Selected location",
+                name: name,
                 address: geocodeResult?.address ?? null,
                 latitude,
                 longitude,
-                placeId: geocodeResult?.placeId ?? null,
-                source: "manual",
+                placeId: placeId,
+                source: "google",
             });
         },
         [reverseGeocode]
     );
+
+    const handleMapPress = useCallback(() => {
+        // Dismiss selection if clicking elsewhere? Or just do nothing?
+        // For now, let's just do nothing or maybe dismiss keyboard if open
+        Keyboard.dismiss();
+    }, []);
 
     const handleConfirm = useCallback(() => {
         if (!selected) {
@@ -200,6 +208,7 @@ export default function VenueMapPickerScreen() {
                 region={region}
                 onRegionChangeComplete={setRegion}
                 onPress={handleMapPress}
+                onPoiClick={handlePoiClick}
             >
                 {selected && (
                     <Marker
@@ -261,7 +270,7 @@ export default function VenueMapPickerScreen() {
                         </>
                     ) : (
                         <Text style={styles.placeholderText}>
-                            Tap on the map or search above to select a venue.
+                            Tap a place on the map or search above to select a venue.
                         </Text>
                     )}
 
