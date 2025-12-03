@@ -73,25 +73,28 @@ export default function VenueCreateScreen() {
                 return;
             }
 
-            // Option 1 — Use recommended RPC:
-            const { data, error } = await supabase.rpc("rpc_insert_venue", {
-                p_name: name,
-                p_address: address || null,
-                p_lat: lat,
-                p_lng: lng,
-                p_source: source,
-                p_source_id: sourceId || null,
-                p_num_courts: numCourts ? Number(numCourts) : null,
-                p_surface: surface || null,
-                p_indoor: indoor,
-                p_lighting: lighting,
-                p_created_by: profile.id,
-            });
+            // Insert directly into venues table with GeoJSON Point for geom column
+            const { data, error } = await supabase
+                .from("venues")
+                .insert({
+                    name,
+                    address: address || null,
+                    geom: `POINT(${lng} ${lat})`,
+                    source,
+                    source_id: sourceId || null,
+                    num_courts: numCourts ? Number(numCourts) : null,
+                    surface: surface || null,
+                    indoor,
+                    lighting,
+                    created_by: profile.id,
+                })
+                .select("id")
+                .single();
 
             if (error) throw error;
 
             Alert.alert("Success", "Venue created successfully.");
-            router.replace(`/venue/${data}`); // Go to venue detail page (optional)
+            router.replace(`/venue/${data.id}`); // Go to venue detail page (optional)
         } catch (err: any) {
             console.error(err);
             Alert.alert("Error", err.message ?? "Failed to create venue.");
