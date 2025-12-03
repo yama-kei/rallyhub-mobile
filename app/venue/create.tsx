@@ -1,10 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-    View,
     StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
     Alert,
     ScrollView,
 } from "react-native";
@@ -13,6 +9,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { useProfileStore } from "@/lib/data/hooks/useProfileStore";
 import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkStore";
+import { VenueForm, VenueFormValues } from "@/components/VenueForm";
 
 export default function VenueCreateScreen() {
     const router = useRouter();
@@ -31,20 +28,36 @@ export default function VenueCreateScreen() {
         source_id?: string;
     }>();
 
-    // --- Form State ---
-    const [name, setName] = useState(params.name ?? "");
-    const [address, setAddress] = useState(params.address ?? "");
-    const [latitude, setLatitude] = useState(params.latitude ?? "");
-    const [longitude, setLongitude] = useState(params.longitude ?? "");
     const [source] = useState(params.source ?? "user");
     const [sourceId] = useState(params.source_id ?? "");
-
-    const [numCourts, setNumCourts] = useState("");
-    const [surface, setSurface] = useState("");
-    const [indoor, setIndoor] = useState(false);
-    const [lighting, setLighting] = useState(false);
-
     const [submitting, setSubmitting] = useState(false);
+
+    // Form state using VenueFormValues
+    const [formValues, setFormValues] = useState<VenueFormValues>({
+        name: params.name ?? "",
+        address: params.address ?? "",
+        latitude: params.latitude ?? "",
+        longitude: params.longitude ?? "",
+        numCourts: "",
+        indoor: false,
+        lighting: false,
+    });
+
+    // Update form values when params change (e.g., from map picker)
+    useEffect(() => {
+        setFormValues((prev) => ({
+            ...prev,
+            ...(params.name !== undefined && { name: params.name }),
+            ...(params.address !== undefined && { address: params.address }),
+            ...(params.latitude !== undefined && { latitude: params.latitude }),
+            ...(params.longitude !== undefined && { longitude: params.longitude }),
+        }));
+    }, [params.name, params.address, params.latitude, params.longitude]);
+
+    // --- Form change handler ---
+    const handleChange = (field: keyof VenueFormValues, value: any) => {
+        setFormValues((prev) => ({ ...prev, [field]: value }));
+    };
 
     // --- Handler: Map Picker ---
     const goToMapPicker = () => {
@@ -53,8 +66,8 @@ export default function VenueCreateScreen() {
 
     // --- Handler: Submit ---
     const handleSubmit = async () => {
-        if (!name) return Alert.alert("Missing name", "Please enter venue name.");
-        if (!latitude || !longitude)
+        if (!formValues.name) return Alert.alert("Missing name", "Please enter venue name.");
+        if (!formValues.latitude || !formValues.longitude)
             return Alert.alert(
                 "Missing location",
                 "Please select a location from the map."
@@ -65,8 +78,8 @@ export default function VenueCreateScreen() {
         try {
             setSubmitting(true);
 
-            const lat = Number(latitude);
-            const lng = Number(longitude);
+            const lat = Number(formValues.latitude);
+            const lng = Number(formValues.longitude);
 
             if (isNaN(lat) || isNaN(lng)) {
                 Alert.alert("Invalid location", "Latitude and longitude must be numbers.");
@@ -78,16 +91,16 @@ export default function VenueCreateScreen() {
             const { data, error } = await supabase.rpc(
                 "rpc_insert_venue" as never,
                 {
-                    p_name: name,
-                    p_address: address || null,
+                    p_name: formValues.name,
+                    p_address: formValues.address || null,
                     p_lat: lat,
                     p_lng: lng,
                     p_source: source,
                     p_source_id: sourceId || null,
-                    p_num_courts: numCourts ? Number(numCourts) : null,
-                    p_surface: surface || null,
-                    p_indoor: indoor,
-                    p_lighting: lighting,
+                    p_num_courts: formValues.numCourts ? Number(formValues.numCourts) : null,
+                    p_surface: null,
+                    p_indoor: formValues.indoor,
+                    p_lighting: formValues.lighting,
                     p_created_by: profile.id,
                 } as never
             );
@@ -106,89 +119,15 @@ export default function VenueCreateScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.form}>
-                <Text style={styles.title}>Create Venue</Text>
-
-                {/* Map Picker - at top */}
-                <TouchableOpacity style={styles.mapButton} onPress={goToMapPicker}>
-                    <Text style={styles.mapButtonText}>Select from Map</Text>
-                </TouchableOpacity>
-
-                {/* Address - read-only, populated from map */}
-                <Text style={styles.label}>Address</Text>
-                <TextInput
-                    style={[styles.input, styles.inputDisabled]}
-                    value={address}
-                    placeholder="Select location from map"
-                    editable={false}
+            <ScrollView contentContainerStyle={styles.scroll}>
+                <VenueForm
+                    values={formValues}
+                    submitting={submitting}
+                    onChange={handleChange}
+                    onPressMap={goToMapPicker}
+                    onSubmit={handleSubmit}
+                    submitLabel="Create Venue"
                 />
-
-                {/* Latitude - read-only, populated from map */}
-                <Text style={styles.label}>Latitude</Text>
-                <TextInput
-                    style={[styles.input, styles.inputDisabled]}
-                    value={latitude}
-                    placeholder="—"
-                    editable={false}
-                />
-
-                {/* Longitude - read-only, populated from map */}
-                <Text style={styles.label}>Longitude</Text>
-                <TextInput
-                    style={[styles.input, styles.inputDisabled]}
-                    value={longitude}
-                    placeholder="—"
-                    editable={false}
-                />
-
-                {/* Name */}
-                <Text style={styles.label}>Venue Name *</Text>
-                <TextInput
-                    style={styles.input}
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="e.g., The Hub (Silicon Valley)"
-                />
-
-                {/* Optional Fields */}
-                <Text style={styles.label}>Number of Courts</Text>
-                <TextInput
-                    style={styles.input}
-                    value={numCourts}
-                    onChangeText={setNumCourts}
-                    keyboardType="numeric"
-                    placeholder="e.g., 4"
-                />
-
-
-
-                {/* Toggles */}
-                <View style={styles.toggleRow}>
-                    <TouchableOpacity
-                        style={[styles.toggle, indoor && styles.toggleActive]}
-                        onPress={() => setIndoor(!indoor)}
-                    >
-                        <Text style={styles.toggleText}>Indoor</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.toggle, lighting && styles.toggleActive]}
-                        onPress={() => setLighting(!lighting)}
-                    >
-                        <Text style={styles.toggleText}>Lighting</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Submit */}
-                <TouchableOpacity
-                    style={[styles.submitButton, submitting && styles.submitDisabled]}
-                    onPress={handleSubmit}
-                    disabled={submitting}
-                >
-                    <Text style={styles.submitText}>
-                        {submitting ? "Creating…" : "Create Venue"}
-                    </Text>
-                </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
     );
@@ -196,73 +135,5 @@ export default function VenueCreateScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    form: { padding: 16 },
-    title: {
-        fontSize: 24,
-        fontWeight: "700",
-        marginBottom: 20,
-    },
-    label: {
-        marginTop: 12,
-        marginBottom: 4,
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    input: {
-        backgroundColor: "#fff",
-        padding: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: "#ddd",
-    },
-    inputDisabled: {
-        backgroundColor: "#f3f4f6",
-        color: "#9ca3af",
-    },
-    mapButton: {
-        marginTop: 12,
-        backgroundColor: "#2563EB",
-        padding: 12,
-        borderRadius: 8,
-        alignItems: "center",
-    },
-    mapButtonText: {
-        color: "white",
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    toggleRow: {
-        flexDirection: "row",
-        gap: 8,
-        marginTop: 12,
-    },
-    toggle: {
-        flex: 1,
-        paddingVertical: 10,
-        borderRadius: 8,
-        backgroundColor: "#E5E7EB",
-        alignItems: "center",
-    },
-    toggleActive: {
-        backgroundColor: "#2563EB",
-    },
-    toggleText: {
-        color: "white",
-        fontWeight: "600",
-    },
-    submitButton: {
-        marginTop: 20,
-        backgroundColor: "#10B981",
-        padding: 14,
-        borderRadius: 8,
-        alignItems: "center",
-    },
-    submitDisabled: {
-        opacity: 0.6,
-    },
-    submitText: {
-        color: "white",
-        fontSize: 16,
-        fontWeight: "700",
-    },
+    scroll: { padding: 16 },
 });
