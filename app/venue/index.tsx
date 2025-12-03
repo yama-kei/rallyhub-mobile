@@ -17,6 +17,9 @@ import type { Database } from "@/lib/supabase/types";
 
 type Venue = Database["public"]["Tables"]["venues"]["Row"];
 
+// Default coordinates (Palo Alto, CA) used when venue location is unavailable
+const DEFAULT_COORDINATES: [number, number] = [-122.143, 37.4419];
+
 export default function VenueListScreen() {
   const router = useRouter();
 
@@ -92,6 +95,26 @@ export default function VenueListScreen() {
   }, [search, venues]);
 
   // -----------------------------
+  // Helpers
+  // -----------------------------
+
+  // Calculate Haversine distance in kilometers
+  const calculateDistanceKm = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) ** 2;
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // -----------------------------
   // Sort by distance (optional)
   // -----------------------------
   const sortByDistance = (list: Venue[]) => {
@@ -101,15 +124,11 @@ export default function VenueListScreen() {
       const aGeom = a.geom as { coordinates?: [number, number] } | null;
       const bGeom = b.geom as { coordinates?: [number, number] } | null;
 
-      const [aLng, aLat] = aGeom?.coordinates ?? [-122.143, 37.4419];
-      const [bLng, bLat] = bGeom?.coordinates ?? [-122.143, 37.4419];
+      const [aLng, aLat] = aGeom?.coordinates ?? DEFAULT_COORDINATES;
+      const [bLng, bLat] = bGeom?.coordinates ?? DEFAULT_COORDINATES;
 
-      const da =
-        (aLat - userLocation.lat) ** 2 +
-        (aLng - userLocation.lng) ** 2;
-      const db =
-        (bLat - userLocation.lat) ** 2 +
-        (bLng - userLocation.lng) ** 2;
+      const da = calculateDistanceKm(userLocation.lat, userLocation.lng, aLat, aLng);
+      const db = calculateDistanceKm(userLocation.lat, userLocation.lng, bLat, bLng);
 
       return da - db;
     });
@@ -117,27 +136,13 @@ export default function VenueListScreen() {
 
   const sorted = sortByDistance(filtered);
 
-  // -----------------------------
-  // Helpers
-  // -----------------------------
   const getDistanceText = (venue: Venue) => {
     if (!userLocation) return null;
 
     const geom = venue.geom as { coordinates?: [number, number] } | null;
-    const [lng, lat] = geom?.coordinates ?? [0, 0];
+    const [lng, lat] = geom?.coordinates ?? DEFAULT_COORDINATES;
 
-    const R = 6371; // km
-    const dLat = ((lat - userLocation.lat) * Math.PI) / 180;
-    const dLng = ((lng - userLocation.lng) * Math.PI) / 180;
-
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos((userLocation.lat * Math.PI) / 180) *
-        Math.cos((lat * Math.PI) / 180) *
-        Math.sin(dLng / 2) ** 2;
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const km = R * c;
+    const km = calculateDistanceKm(userLocation.lat, userLocation.lng, lat, lng);
 
     return `${(km * 0.621371).toFixed(1)} mi away`;
   };
