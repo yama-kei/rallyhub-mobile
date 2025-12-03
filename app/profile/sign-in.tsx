@@ -18,14 +18,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth/auth";
 import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkStore";
 
-export default function ProfileSetupScreen() {
-  const [username, setUsername] = useState("");
+export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const [checkingExistingProfile, setCheckingExistingProfile] = useState(false);
   const router = useRouter();
   const { session, loading: authLoading, signInWithGoogle, signInWithMagicLink } = useAuth();
-  const { createPlaceholderForDevice, fetchAndLinkExistingProfile } = useLocalProfileLinkStore();
+  const { fetchAndLinkExistingProfile } = useLocalProfileLinkStore();
 
   // When user signs in, check for existing profile and redirect
   useEffect(() => {
@@ -34,22 +33,18 @@ export default function ProfileSetupScreen() {
       if (shouldCheckForExistingProfile) {
         setCheckingExistingProfile(true);
         try {
-          console.log("[ProfileSetup] User signed in, checking for existing profile...");
+          console.log("[SignIn] User signed in, checking for existing profile...");
           const existingProfile = await fetchAndLinkExistingProfile(session.user.id);
           
           if (existingProfile) {
-            console.log("[ProfileSetup] Found existing profile, using it:", existingProfile.display_name);
+            console.log("[SignIn] Found existing profile, using it:", existingProfile.display_name);
             // Save display name to legacy storage for backward compatibility
             await AsyncStorage.setItem("username", existingProfile.display_name);
-            // Navigate to profile tab
-            router.replace("/(tabs)/profile");
-          } else {
-            // User has an account but no profile yet - they need to create one
-            console.log("[ProfileSetup] No existing profile found for this user");
-            setCheckingExistingProfile(false);
           }
+          // Navigate to home tab after sign-in (profile was already created in setup page)
+          router.replace("/(tabs)/home");
         } catch (error) {
-          console.error("[ProfileSetup] Error checking for existing profile:", error);
+          console.error("[SignIn] Error checking for existing profile:", error);
           setCheckingExistingProfile(false);
         }
       }
@@ -58,26 +53,9 @@ export default function ProfileSetupScreen() {
     handleExistingProfile();
   }, [session, authLoading]);
 
-  const onSave = async () => {
-    const name = username.trim();
-    if (!name) return;
-
-    try {
-      // Save to the new profile system
-      await createPlaceholderForDevice(name);
-
-      // Also save to legacy username key for backward compatibility
-      await AsyncStorage.setItem("username", name);
-
-      // Navigate to sign-in page to encourage authentication
-      router.replace("/profile/sign-in");
-    } catch (error) {
-      console.error("Failed to save profile:", error);
-      Alert.alert(
-        "Error",
-        "Failed to save your profile. Please try again."
-      );
-    }
+  const handleSkip = () => {
+    // Navigate to home screen without signing in
+    router.replace("/(tabs)/home");
   };
 
   const handleMagicLinkSignIn = async () => {
@@ -95,7 +73,7 @@ export default function ProfileSetupScreen() {
     } else {
       Alert.alert(
         "Check Your Email",
-        "We sent you a magic link. Click the link in your email to sign in and retrieve your profile."
+        "We sent you a magic link. Click the link in your email to sign in and join the RallyHub community."
       );
     }
   };
@@ -107,7 +85,7 @@ export default function ProfileSetupScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4CAF50" />
           <Text style={styles.loadingText}>
-            {checkingExistingProfile ? "Checking for existing profile..." : "Loading..."}
+            {checkingExistingProfile ? "Setting up your profile..." : "Loading..."}
           </Text>
         </View>
       </SafeAreaView>
@@ -125,50 +103,14 @@ export default function ProfileSetupScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.container}>
-            <Text style={styles.title}>Welcome to RallyHub</Text>
+            <Text style={styles.title}>Sign In to RallyHub</Text>
             
-            {/* New user section */}
+            <Text style={styles.description}>
+              Sign in using one of the supported authentication methods to upload your matches and join the RallyHub community.
+            </Text>
+
+            {/* Sign-in section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>New to RallyHub?</Text>
-              <Text style={styles.sectionSubtitle}>
-                Create a new profile to get started
-              </Text>
-
-              <TextInput
-                value={username}
-                onChangeText={setUsername}
-                placeholder="Enter your display name"
-                placeholderTextColor="#aaa"
-                style={styles.input}
-                autoCapitalize="none"
-              />
-
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  { backgroundColor: username.trim() ? "#4CAF50" : "#ccc" },
-                ]}
-                disabled={!username.trim()}
-                onPress={onSave}
-              >
-                <Text style={styles.buttonText}>Create Profile</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Returning user section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Already have an account?</Text>
-              <Text style={styles.sectionSubtitle}>
-                Sign in to retrieve your existing profile
-              </Text>
-              
               {/* Google Sign-In */}
               <TouchableOpacity
                 style={styles.googleButton}
@@ -177,7 +119,12 @@ export default function ProfileSetupScreen() {
                 <Text style={styles.googleButtonText}>Sign In with Google</Text>
               </TouchableOpacity>
 
-              <Text style={styles.orText}>or</Text>
+              {/* Divider */}
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or</Text>
+                <View style={styles.dividerLine} />
+              </View>
 
               {/* Email Magic Link */}
               <TextInput
@@ -193,7 +140,7 @@ export default function ProfileSetupScreen() {
               <TouchableOpacity
                 style={[
                   styles.magicLinkButton,
-                  { backgroundColor: sendingMagicLink ? "#ccc" : "#2196F3" },
+                  { backgroundColor: sendingMagicLink || !email.trim() ? "#ccc" : "#2196F3" },
                 ]}
                 disabled={sendingMagicLink || !email.trim()}
                 onPress={handleMagicLinkSignIn}
@@ -201,6 +148,28 @@ export default function ProfileSetupScreen() {
                 <Text style={styles.buttonText}>
                   {sendingMagicLink ? "Sending..." : "Send Magic Link"}
                 </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Benefits note */}
+            <View style={styles.benefitsSection}>
+              <Text style={styles.benefitsTitle}>Why sign in?</Text>
+              <Text style={styles.benefitsText}>• Sync your matches across devices</Text>
+              <Text style={styles.benefitsText}>• Back up your game history</Text>
+              <Text style={styles.benefitsText}>• Connect with other players</Text>
+              <Text style={styles.benefitsText}>• Access the full RallyHub community</Text>
+            </View>
+
+            {/* Skip button */}
+            <View style={styles.skipSection}>
+              <Text style={styles.skipNote}>
+                You can always sign in later from your profile settings.
+              </Text>
+              <TouchableOpacity
+                style={styles.skipButton}
+                onPress={handleSkip}
+              >
+                <Text style={styles.skipButtonText}>Skip for Now</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -237,27 +206,21 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "700",
-    marginBottom: 32,
+    marginBottom: 16,
     textAlign: "center",
     color: "#222",
   },
+  description: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    marginBottom: 32,
+    lineHeight: 24,
+  },
   section: {
     marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 16,
-    textAlign: "center",
   },
   input: {
     width: "100%",
@@ -268,10 +231,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
     backgroundColor: "#f9f9f9",
-  },
-  button: {
-    paddingVertical: 16,
-    borderRadius: 10,
   },
   googleButton: {
     paddingVertical: 16,
@@ -294,16 +253,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "600",
   },
-  orText: {
-    fontSize: 14,
-    textAlign: "center",
-    marginVertical: 12,
-    color: "#888",
-  },
   divider: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 24,
+    marginVertical: 20,
   },
   dividerLine: {
     flex: 1,
@@ -315,5 +268,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
     fontWeight: "500",
+  },
+  benefitsSection: {
+    backgroundColor: "#f0f8ff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  benefitsTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+  benefitsText: {
+    fontSize: 14,
+    color: "#555",
+    lineHeight: 22,
+  },
+  skipSection: {
+    alignItems: "center",
+  },
+  skipNote: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  skipButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  skipButtonText: {
+    color: "#666",
+    fontSize: 16,
+    textAlign: "center",
+    textDecorationLine: "underline",
   },
 });
