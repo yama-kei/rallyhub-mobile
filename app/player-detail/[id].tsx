@@ -62,7 +62,19 @@ export default function PlayerProfileScreen() {
 
       if (localProfile) {
         // Profile exists locally - user has played with this person
-        setFetchedProfile(localProfile);
+        // Also try to fetch from Supabase to get the latest status (e.g., user_id)
+        // This ensures we show "Registered" status if the user has since signed up
+        const remoteProfile = await profileService.fetchProfileFromSupabase(id);
+        if (remoteProfile) {
+          // If remote profile has user_id but local doesn't, update local
+          if (remoteProfile.user_id && !localProfile.user_id) {
+            // Update local profile with remote data
+            await upsertProfile(remoteProfile);
+          }
+          setFetchedProfile(remoteProfile);
+        } else {
+          setFetchedProfile(localProfile);
+        }
         setCanViewProfile(true);
       } else if (session) {
         // User is signed in - try to fetch from Supabase
