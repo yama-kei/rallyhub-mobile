@@ -73,7 +73,10 @@ export default function VenueCreateScreen() {
                 return;
             }
 
-            // Insert directly into venues table with GeoJSON Point for geom column
+            // Insert directly into venues table
+            // Note: geom uses WKT (Well-Known Text) format for PostGIS. The lat/lng values
+            // are validated above (isNaN check), and Supabase's insert uses parameterized queries
+            // internally, so this is safe from SQL injection.
             const { data, error } = await supabase
                 .from("venues")
                 .insert({
