@@ -17,6 +17,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import type { Database } from "@/lib/supabase/types";
 import { useAuth } from "@/lib/auth/auth";
+import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkStore";
+import { useProfileStore } from "@/lib/data/hooks/useProfileStore";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 type Venue = Database["public"]["Tables"]["venues"]["Row"];
@@ -31,6 +33,19 @@ export default function VenueDetailScreen() {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [settingDefault, setSettingDefault] = useState(false);
+
+  // Profile data for setting default venue
+  const { currentLink, loadLink } = useLocalProfileLinkStore();
+  const { profiles, loadProfiles, upsertProfile } = useProfileStore();
+
+  // Current user's profile
+  const currentProfile = currentLink
+    ? profiles.find((p) => p.id === currentLink.profile_id)
+    : null;
+
+  // Check if this venue is already the user's default
+  const isDefaultVenue = currentProfile?.default_venue_id === id;
 
   // -------------------------------
   // Load Venue Data
@@ -62,9 +77,57 @@ export default function VenueDetailScreen() {
     loadVenue();
   }, [loadVenue]);
 
+  // Load profile data on mount
+  useEffect(() => {
+    loadLink();
+    loadProfiles();
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
     loadVenue();
+  };
+
+  // -------------------------------
+  // Set as Default Venue Handler
+  // -------------------------------
+  const handleSetAsDefaultVenue = async () => {
+    if (!currentProfile) {
+      Alert.alert("Error", "No profile found. Please set up your profile first.");
+      return;
+    }
+
+    if (isDefaultVenue) {
+      // Already the default, remove it
+      try {
+        setSettingDefault(true);
+        await upsertProfile({
+          id: currentProfile.id,
+          default_venue_id: null,
+        });
+        Alert.alert("Success", "Default venue removed.");
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to remove default venue.";
+        Alert.alert("Error", errorMessage);
+      } finally {
+        setSettingDefault(false);
+      }
+    } else {
+      // Set this venue as default
+      try {
+        setSettingDefault(true);
+        await upsertProfile({
+          id: currentProfile.id,
+          default_venue_id: id,
+        });
+        Alert.alert("Success", `${venue?.name} is now your default venue.`);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to set default venue.";
+        Alert.alert("Error", errorMessage);
+      } finally {
+        setSettingDefault(false);
+      }
+    }
   };
 
   if (loading) {
@@ -176,6 +239,39 @@ export default function VenueDetailScreen() {
           <DetailRow label="Status" value={venue.status ?? "approved"} />
         </View>
 
+        {/* Set as Default Venue Button */}
+        {currentProfile && (
+          <TouchableOpacity
+            style={[
+              styles.defaultVenueButton,
+              isDefaultVenue && styles.defaultVenueButtonActive,
+            ]}
+            onPress={handleSetAsDefaultVenue}
+            disabled={settingDefault}
+          >
+            {settingDefault ? (
+              <ActivityIndicator size="small" color={isDefaultVenue ? "#2563EB" : "#fff"} />
+            ) : (
+              <>
+                <Ionicons
+                  name={isDefaultVenue ? "star" : "star-outline"}
+                  size={20}
+                  color={isDefaultVenue ? "#2563EB" : "#fff"}
+                  style={{ marginRight: 8 }}
+                />
+                <Text
+                  style={[
+                    styles.defaultVenueButtonText,
+                    isDefaultVenue && styles.defaultVenueButtonTextActive,
+                  ]}
+                >
+                  {isDefaultVenue ? "Default Venue" : "Set as Default Venue"}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
         {/* Created by */}
         {venue.created_by && (
           <TouchableOpacity
@@ -272,6 +368,31 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   detailValue: { flex: 1 },
+
+  // Default Venue Button
+  defaultVenueButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2563EB",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  defaultVenueButtonActive: {
+    backgroundColor: "#EFF6FF",
+    borderWidth: 2,
+    borderColor: "#2563EB",
+  },
+  defaultVenueButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  defaultVenueButtonTextActive: {
+    color: "#2563EB",
+  },
 
   // Creator
   creatorBox: {
