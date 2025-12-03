@@ -73,31 +73,29 @@ export default function VenueCreateScreen() {
                 return;
             }
 
-            // Insert directly into venues table
-            // Note: geom uses WKT (Well-Known Text) format for PostGIS. The lat/lng values
-            // are validated above (isNaN check), and Supabase's insert uses parameterized queries
-            // internally, so this is safe from SQL injection.
-            const { data, error } = await supabase
-                .from("venues")
-                .insert({
-                    name,
-                    address: address || null,
-                    geom: `POINT(${lng} ${lat})`,
-                    source,
-                    source_id: sourceId || null,
-                    num_courts: numCourts ? Number(numCourts) : null,
-                    surface: surface || null,
-                    indoor,
-                    lighting,
-                    created_by: profile.id,
-                })
-                .select("id")
-                .single();
+            // Use RPC function to insert venue with PostGIS geometry
+            // Type assertion needed due to Supabase RPC type inference limitations
+            const { data, error } = await supabase.rpc(
+                "rpc_insert_venue" as never,
+                {
+                    p_name: name,
+                    p_address: address || null,
+                    p_lat: lat,
+                    p_lng: lng,
+                    p_source: source,
+                    p_source_id: sourceId || null,
+                    p_num_courts: numCourts ? Number(numCourts) : null,
+                    p_surface: surface || null,
+                    p_indoor: indoor,
+                    p_lighting: lighting,
+                    p_created_by: profile.id,
+                } as never
+            );
 
             if (error) throw error;
 
             Alert.alert("Success", "Venue created successfully.");
-            router.replace(`/venue/${data.id}`); // Go to venue detail page (optional)
+            router.replace(`/venue/${data}`); // Go to venue detail page (optional)
         } catch (err: any) {
             console.error(err);
             Alert.alert("Error", err.message ?? "Failed to create venue.");
