@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -46,9 +47,11 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@expo/cli": "^54.0.16",
     "@types/react": "~19.1.0",
     "@types/react-native-maps": "^0.24.1",
     "babel-plugin-module-resolver": "^5.0.2",
+    "patch-package": "^8.0.1",
     "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },

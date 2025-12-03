@@ -149,82 +149,87 @@ export default function ProfileScreen() {
             contentContainerStyle={styles.container}
             keyboardShouldPersistTaps="handled"
           >
-          {isDebugMode && (
-            <View style={styles.debugBadge}>
-              <Text style={styles.debugBadgeText}>🐛 Debug Mode</Text>
-            </View>
-          )}
-          <Text style={styles.title}>My Profile</Text>
-
-          <Text style={styles.label}>Display Name:</Text>
-          <Text style={styles.value}>{profile.display_name}</Text>
-
-          <Text style={styles.label}>Default Venue:</Text>
-          <Text style={styles.value}>
-            {defaultVenue ? defaultVenue.name : "Not set"}
-          </Text>
-
-          <View style={{ marginTop: 24 }}>
-            <Button
-              title="Edit Profile"
-              onPress={() => router.push("/(tabs)/profile/edit")}
-            />
-            <View style={{ height: 12 }} />
-            <Button
-              title="Show My QR Code"
-              onPress={() => router.push("/show-qr")}
-            />
-          </View>
-
-          {/* ---- SIGNED IN ---- */}
-          {session ? (
-            <View style={{ marginTop: 32 }}>
-              <Text style={styles.signedInText}>
-                Signed in as {session.user.email}
-              </Text>
-
-              <Button title="Sign Out" onPress={signOut} />
-            </View>
-          ) : (
-            /* ---- NOT SIGNED IN ---- */
-            <View style={styles.authContainer}>
-              <Text style={styles.label}>Sign-in status:</Text>
-              <Text style={styles.subMessage}>You are not signed in.</Text>
-
-              {/* Google Sign-In */}
-              <Button title="Sign In with Google" onPress={signInWithGoogle} />
-              <Text style={styles.orText}>or</Text>
-
-              {/* Email Magic Link Section */}
-              <View style={styles.magicLinkSection}>
-                <Text style={styles.magicLinkLabel}>
-                  Sign in with a magic link:
-                </Text>
-                <TextInput
-                  style={styles.emailInput}
-                  placeholder="Enter your email"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <Button
-                  title={sendingMagicLink ? "Sending..." : "Send Magic Link"}
-                  onPress={handleMagicLinkSignIn}
-                  disabled={sendingMagicLink}
-                />
+            {isDebugMode && (
+              <View style={styles.debugBadge}>
+                <Text style={styles.debugBadgeText}>🐛 Debug Mode</Text>
               </View>
-            </View>
-          )}
-          {isDebugMode && (
-            <TouchableOpacity onPress={clearLocalAppData}>
-              <Text>Reset App</Text>
-            </TouchableOpacity>
-          )}
+            )}
+            <Text style={styles.title}>My Profile</Text>
 
-        </ScrollView>
-      </View>
+            <Text style={styles.label}>Display Name:</Text>
+            <Text style={styles.value}>{profile.display_name}</Text>
+
+            <Text style={styles.label}>Default Venue:</Text>
+            <Text style={styles.value}>
+              {defaultVenue ? defaultVenue.name : "Not set"}
+            </Text>
+
+            <View style={{ marginTop: 24 }}>
+              <Button
+                title="Edit Profile"
+                onPress={() => router.push("/(tabs)/profile/edit")}
+              />
+              <View style={{ height: 12 }} />
+              <Button
+                title="Show My QR Code"
+                onPress={() => router.push("/show-qr")}
+              />
+              <View style={{ height: 12 }} />
+              <Button
+                title="Create Venue (Test)"
+                onPress={() => router.push("/venue/create")}
+              />
+            </View>
+
+            {/* ---- SIGNED IN ---- */}
+            {session ? (
+              <View style={{ marginTop: 32 }}>
+                <Text style={styles.signedInText}>
+                  Signed in as {session.user.email}
+                </Text>
+
+                <Button title="Sign Out" onPress={signOut} />
+              </View>
+            ) : (
+              /* ---- NOT SIGNED IN ---- */
+              <View style={styles.authContainer}>
+                <Text style={styles.label}>Sign-in status:</Text>
+                <Text style={styles.subMessage}>You are not signed in.</Text>
+
+                {/* Google Sign-In */}
+                <Button title="Sign In with Google" onPress={signInWithGoogle} />
+                <Text style={styles.orText}>or</Text>
+
+                {/* Email Magic Link Section */}
+                <View style={styles.magicLinkSection}>
+                  <Text style={styles.magicLinkLabel}>
+                    Sign in with a magic link:
+                  </Text>
+                  <TextInput
+                    style={styles.emailInput}
+                    placeholder="Enter your email"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <Button
+                    title={sendingMagicLink ? "Sending..." : "Send Magic Link"}
+                    onPress={handleMagicLinkSignIn}
+                    disabled={sendingMagicLink}
+                  />
+                </View>
+              </View>
+            )}
+            {isDebugMode && (
+              <TouchableOpacity onPress={clearLocalAppData}>
+                <Text>Reset App</Text>
+              </TouchableOpacity>
+            )}
+
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
