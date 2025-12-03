@@ -209,8 +209,6 @@ export default function VenueMapPickerScreen() {
                 style={StyleSheet.absoluteFill}
                 provider={PROVIDER_GOOGLE}
                 initialRegion={region}
-                region={region}
-                onRegionChangeComplete={setRegion}
                 onPress={handleMapPress}
                 onPoiClick={handlePoiClick}
             >
