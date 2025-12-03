@@ -149,7 +149,6 @@ export default function VenueDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Venue Details</Text>
 
-          <DetailRow label="Surface" value={venue.surface ?? "Unknown"} />
           <DetailRow
             label="Number of Courts"
             value={venue.num_courts ?? "Unknown"}

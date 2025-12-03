@@ -236,13 +236,7 @@ export default function EditVenueScreen() {
           placeholder="e.g., 4"
         />
 
-        <Text style={styles.label}>Surface</Text>
-        <TextInput
-          style={styles.input}
-          value={surface}
-          onChangeText={setSurface}
-          placeholder="Concrete, Asphalt…"
-        />
+
 
         {/* Toggles */}
         <View style={styles.toggleRow}>
