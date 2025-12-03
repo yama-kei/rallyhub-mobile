@@ -10,12 +10,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import { useProfileStore } from "@/lib/data/hooks/useProfileStore";
+import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkStore";
 
 export default function VenueCreateScreen() {
     const router = useRouter();
-    const { profile } = useProfileStore(); // must provide profile.id as created_by
+    const { profiles } = useProfileStore();
+    const { currentLink } = useLocalProfileLinkStore();
+    const profile = currentLink?.profile_id
+        ? profiles.find((p) => p.id === currentLink.profile_id)
+        : undefined;
 
     const params = useLocalSearchParams<{
         name?: string;
@@ -52,7 +57,7 @@ export default function VenueCreateScreen() {
         if (!latitude || !longitude)
             return Alert.alert(
                 "Missing location",
-                "Select location from map or enter lat/lng manually."
+                "Please select a location from the map."
             );
         if (!profile?.id)
             return Alert.alert("No profile linked", "Cannot create venue.");
@@ -100,6 +105,38 @@ export default function VenueCreateScreen() {
             <ScrollView contentContainerStyle={styles.form}>
                 <Text style={styles.title}>Create Venue</Text>
 
+                {/* Map Picker - at top */}
+                <TouchableOpacity style={styles.mapButton} onPress={goToMapPicker}>
+                    <Text style={styles.mapButtonText}>Select from Map</Text>
+                </TouchableOpacity>
+
+                {/* Address - read-only, populated from map */}
+                <Text style={styles.label}>Address</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={address}
+                    placeholder="Select location from map"
+                    editable={false}
+                />
+
+                {/* Latitude - read-only, populated from map */}
+                <Text style={styles.label}>Latitude</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={latitude}
+                    placeholder="—"
+                    editable={false}
+                />
+
+                {/* Longitude - read-only, populated from map */}
+                <Text style={styles.label}>Longitude</Text>
+                <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    value={longitude}
+                    placeholder="—"
+                    editable={false}
+                />
+
                 {/* Name */}
                 <Text style={styles.label}>Venue Name *</Text>
                 <TextInput
@@ -107,39 +144,6 @@ export default function VenueCreateScreen() {
                     value={name}
                     onChangeText={setName}
                     placeholder="e.g., The Hub (Silicon Valley)"
-                />
-
-                {/* Address */}
-                <Text style={styles.label}>Address</Text>
-                <TextInput
-                    style={styles.input}
-                    value={address}
-                    onChangeText={setAddress}
-                    placeholder="Enter venue address"
-                />
-
-                {/* Map Picker */}
-                <TouchableOpacity style={styles.mapButton} onPress={goToMapPicker}>
-                    <Text style={styles.mapButtonText}>Select from Map</Text>
-                </TouchableOpacity>
-
-                {/* Latitude / Longitude */}
-                <Text style={styles.label}>Latitude</Text>
-                <TextInput
-                    style={styles.input}
-                    value={latitude}
-                    onChangeText={setLatitude}
-                    keyboardType="numeric"
-                    placeholder="37.4419"
-                />
-
-                <Text style={styles.label}>Longitude</Text>
-                <TextInput
-                    style={styles.input}
-                    value={longitude}
-                    onChangeText={setLongitude}
-                    keyboardType="numeric"
-                    placeholder="-122.1430"
                 />
 
                 {/* Optional Fields */}
@@ -212,6 +216,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderWidth: 1,
         borderColor: "#ddd",
+    },
+    inputDisabled: {
+        backgroundColor: "#f3f4f6",
+        color: "#9ca3af",
     },
     mapButton: {
         marginTop: 12,

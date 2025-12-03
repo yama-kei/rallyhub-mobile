@@ -42,6 +42,11 @@ export default function VenueMapPickerScreen() {
     const [selected, setSelected] = useState<SelectedLocation | null>(null);
     const [reverseGeocoding, setReverseGeocoding] = useState(false);
 
+    // Handler: Cancel and go back
+    const handleCancel = useCallback(() => {
+        router.back();
+    }, [router]);
+
     // Get user location once on mount (best effort)
     useEffect(() => {
         const init = async () => {
@@ -210,6 +215,11 @@ export default function VenueMapPickerScreen() {
 
             {/* Search bar overlay */}
             <SafeAreaView style={styles.overlayTop} pointerEvents="box-none">
+                <View style={styles.headerRow}>
+                    <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                </View>
                 <View style={styles.searchWrapper}>
                     <GooglePlacesAutocomplete
                         placeholder="Search for venue or court"
@@ -295,8 +305,30 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
     },
-    searchWrapper: {
+    headerRow: {
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        paddingHorizontal: 12,
         marginTop: Platform.OS === "android" ? 16 : 0,
+    },
+    cancelButton: {
+        backgroundColor: "rgba(255,255,255,0.95)",
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    cancelButtonText: {
+        color: "#2563EB",
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    searchWrapper: {
+        marginTop: 8,
         paddingHorizontal: 12,
     },
     autocompleteContainer: {
