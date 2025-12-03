@@ -174,9 +174,7 @@ export default function VenueListScreen() {
           {item.num_courts && (
             <Text style={styles.meta}>{item.num_courts} courts</Text>
           )}
-          {item.surface && (
-            <Text style={styles.meta}>{item.surface}</Text>
-          )}
+
         </View>
       </TouchableOpacity>
     );

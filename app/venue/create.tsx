@@ -160,13 +160,7 @@ export default function VenueCreateScreen() {
                     placeholder="e.g., 4"
                 />
 
-                <Text style={styles.label}>Surface</Text>
-                <TextInput
-                    style={styles.input}
-                    value={surface}
-                    onChangeText={setSurface}
-                    placeholder="e.g., Concrete, Asphalt, Wood"
-                />
+
 
                 {/* Toggles */}
                 <View style={styles.toggleRow}>
