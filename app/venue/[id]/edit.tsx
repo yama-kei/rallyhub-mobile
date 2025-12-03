@@ -250,14 +250,14 @@ export default function EditVenueScreen() {
             style={[styles.toggle, indoor && styles.toggleActive]}
             onPress={() => setIndoor(!indoor)}
           >
-            <Text style={styles.toggleText}>Indoor</Text>
+            <Text style={[styles.toggleText, !indoor && styles.toggleTextInactive]}>Indoor</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.toggle, lighting && styles.toggleActive]}
             onPress={() => setLighting(!lighting)}
           >
-            <Text style={styles.toggleText}>Lighting</Text>
+            <Text style={[styles.toggleText, !lighting && styles.toggleTextInactive]}>Lighting</Text>
           </TouchableOpacity>
         </View>
 
@@ -334,6 +334,9 @@ const styles = StyleSheet.create({
   toggleText: {
     color: "white",
     fontWeight: "600",
+  },
+  toggleTextInactive: {
+    color: "#374151",
   },
   submitButton: {
     marginTop: 24,

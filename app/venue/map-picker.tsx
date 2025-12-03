@@ -181,7 +181,7 @@ export default function VenueMapPickerScreen() {
 
         // Push back with prefilled params
         router.replace({
-            pathname: targetPathname as "/venue/create",
+            pathname: targetPathname,
             params: {
                 name: selected.name ?? "",
                 address: selected.address ?? "",
@@ -190,7 +190,7 @@ export default function VenueMapPickerScreen() {
                 source: selected.source,
                 source_id: selected.placeId ?? "",
             },
-        });
+        } as Parameters<typeof router.replace>[0]);
     }, [router, selected, returnTo]);
 
     if (initializing) {
