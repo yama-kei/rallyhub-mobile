@@ -110,7 +110,7 @@ export default function VenueCreateScreen() {
                 {
                     p_lat: lat,
                     p_lng: lng,
-                    p_radius_meters: 100,
+                    p_radius_meters: 150,
                 } as never
             );
 
