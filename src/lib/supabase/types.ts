@@ -79,6 +79,8 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          canonical_name: string | null;
+          display_name: string | null;
           address: string | null;
           geom: unknown | null;
           source: string | null;
@@ -95,6 +97,8 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
+          canonical_name?: string | null;
+          display_name?: string | null;
           address?: string | null;
           geom?: unknown | null;
           source?: string | null;
@@ -291,16 +295,17 @@ export interface Database {
       };
       rpc_insert_venue: {
         Args: {
-          p_name: string;
-          p_address: string | null;
+          p_canonical_name: string;
+          p_display_name?: string | null;
+          p_address?: string | null;
           p_lat: number;
           p_lng: number;
-          p_source: string | null;
-          p_source_id: string | null;
-          p_num_courts: number | null;
-          p_surface: string | null;
-          p_indoor: boolean;
-          p_lighting: boolean;
+          p_source?: string | null;
+          p_source_id?: string | null;
+          p_num_courts?: number | null;
+          p_surface?: string | null;
+          p_indoor?: boolean;
+          p_lighting?: boolean;
           p_created_by: string;
         };
         Returns: string;

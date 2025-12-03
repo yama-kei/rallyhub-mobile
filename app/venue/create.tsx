@@ -11,6 +11,8 @@ import { useProfileStore } from "@/lib/data/hooks/useProfileStore";
 import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkStore";
 import { VenueForm, VenueFormValues } from "@/components/VenueForm";
 
+import { friendlyVenueName } from "@/lib/venue-utils";
+
 export default function VenueCreateScreen() {
     const router = useRouter();
     const { profiles } = useProfileStore();
@@ -35,6 +37,7 @@ export default function VenueCreateScreen() {
     // Form state using VenueFormValues
     const [formValues, setFormValues] = useState<VenueFormValues>({
         name: params.name ?? "",
+        canonicalName: params.name ?? null,
         address: params.address ?? "",
         latitude: params.latitude ?? "",
         longitude: params.longitude ?? "",
@@ -45,13 +48,24 @@ export default function VenueCreateScreen() {
 
     // Update form values when params change (e.g., from map picker)
     useEffect(() => {
-        setFormValues((prev) => ({
-            ...prev,
-            ...(params.name !== undefined && { name: params.name }),
-            ...(params.address !== undefined && { address: params.address }),
-            ...(params.latitude !== undefined && { latitude: params.latitude }),
-            ...(params.longitude !== undefined && { longitude: params.longitude }),
-        }));
+        if (params.name) {
+            const friendly = friendlyVenueName(params.name);
+            setFormValues((prev) => ({
+                ...prev,
+                name: friendly ?? params.name!,
+                canonicalName: params.name,
+                ...(params.address !== undefined && { address: params.address }),
+                ...(params.latitude !== undefined && { latitude: params.latitude }),
+                ...(params.longitude !== undefined && { longitude: params.longitude }),
+            }));
+        } else {
+            setFormValues((prev) => ({
+                ...prev,
+                ...(params.address !== undefined && { address: params.address }),
+                ...(params.latitude !== undefined && { latitude: params.latitude }),
+                ...(params.longitude !== undefined && { longitude: params.longitude }),
+            }));
+        }
     }, [params.name, params.address, params.latitude, params.longitude]);
 
     // --- Form change handler ---
@@ -91,7 +105,8 @@ export default function VenueCreateScreen() {
             const { data, error } = await supabase.rpc(
                 "rpc_insert_venue" as never,
                 {
-                    p_name: formValues.name,
+                    p_canonical_name: formValues.canonicalName || formValues.name,
+                    p_display_name: formValues.name,
                     p_address: formValues.address || null,
                     p_lat: lat,
                     p_lng: lng,

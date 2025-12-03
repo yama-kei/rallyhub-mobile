@@ -10,6 +10,7 @@ import {
 
 export type VenueFormValues = {
     name: string;
+    canonicalName?: string | null;
     address: string;
     latitude: string;
     longitude: string;
