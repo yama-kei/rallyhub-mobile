@@ -277,6 +277,20 @@ export default function VenueDetailScreen() {
           </TouchableOpacity>
         )}
 
+        {/* View Leaderboard Button */}
+        <TouchableOpacity
+          style={styles.leaderboardButton}
+          onPress={() => router.push(`/leaderboard?venueId=${id}`)}
+        >
+          <Ionicons
+            name="trophy-outline"
+            size={20}
+            color="#fff"
+            style={{ marginRight: 8 }}
+          />
+          <Text style={styles.leaderboardButtonText}>View Leaderboard</Text>
+        </TouchableOpacity>
+
         {/* Created by */}
         {venue.created_by && (
           <TouchableOpacity
@@ -397,6 +411,23 @@ const styles = StyleSheet.create({
   },
   defaultVenueButtonTextActive: {
     color: "#2563EB",
+  },
+
+  // Leaderboard Button
+  leaderboardButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F59E0B",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  leaderboardButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 
   // Creator

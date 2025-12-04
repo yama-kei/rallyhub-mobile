@@ -3,15 +3,18 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
+  Modal,
   RefreshControl,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { useAuth } from "@/lib/auth/auth";
 import { useLeaderboardStore } from "@/lib/data/hooks/useLeaderboardStore";
@@ -21,11 +24,15 @@ import { useVenueStore } from "@/lib/data/hooks/useVenueStore";
 
 export default function LeaderboardScreen() {
   const { session } = useAuth();
+  const { venueId: venueIdParam } = useLocalSearchParams<{ venueId?: string }>();
   const { currentLink, loadLink } = useLocalProfileLinkStore();
   const { profiles, loadProfiles } = useProfileStore();
   const { venues, loadVenues } = useVenueStore();
   const { entries, loading, error, fetchLeaderboard } = useLeaderboardStore();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
+  const [venuePickerVisible, setVenuePickerVisible] = useState(false);
+  const [venueSearch, setVenueSearch] = useState("");
 
   // Load necessary data on mount
   useEffect(() => {
@@ -43,32 +50,61 @@ export default function LeaderboardScreen() {
     ? venues.find((v) => v.id === profile.default_venue_id)
     : null;
 
+  // Initialize selected venue from URL param or default venue
+  useEffect(() => {
+    if (venueIdParam) {
+      setSelectedVenueId(venueIdParam);
+    } else if (defaultVenue && !selectedVenueId) {
+      setSelectedVenueId(defaultVenue.id);
+    }
+  }, [venueIdParam, defaultVenue?.id]);
+
+  // Get the currently selected venue object
+  const selectedVenue = selectedVenueId
+    ? venues.find((v) => v.id === selectedVenueId)
+    : defaultVenue;
+
   // Check access conditions
   const isSignedIn = !!session;
   const hasDefaultVenue = !!defaultVenue;
   const canAccessLeaderboard = isSignedIn && hasDefaultVenue;
 
-  // Fetch leaderboard when conditions are met
+  // Fetch leaderboard when conditions are met and venue is selected
   useEffect(() => {
-    if (canAccessLeaderboard && defaultVenue) {
-      fetchLeaderboard(defaultVenue.id, 7);
+    if (canAccessLeaderboard && selectedVenue) {
+      fetchLeaderboard(selectedVenue.id, 7);
     }
-  }, [canAccessLeaderboard, defaultVenue?.id]);
+  }, [canAccessLeaderboard, selectedVenue?.id]);
 
   // Pull-to-refresh handler
   const onRefresh = useCallback(async () => {
-    if (!canAccessLeaderboard || !defaultVenue) return;
+    if (!canAccessLeaderboard || !selectedVenue) return;
     setRefreshing(true);
     try {
       await Promise.all([
         loadProfiles(),
         loadVenues(),
-        fetchLeaderboard(defaultVenue.id, 7),
+        fetchLeaderboard(selectedVenue.id, 7),
       ]);
     } finally {
       setRefreshing(false);
     }
-  }, [canAccessLeaderboard, defaultVenue?.id, loadProfiles, loadVenues, fetchLeaderboard]);
+  }, [canAccessLeaderboard, selectedVenue?.id, loadProfiles, loadVenues, fetchLeaderboard]);
+
+  // Handle venue selection
+  const handleVenueSelect = (venueId: string) => {
+    setSelectedVenueId(venueId);
+    setVenuePickerVisible(false);
+    setVenueSearch("");
+    fetchLeaderboard(venueId, 7);
+  };
+
+  // Filter venues for picker
+  const filteredVenues = venueSearch
+    ? venues.filter((v) =>
+        v.name.toLowerCase().includes(venueSearch.toLowerCase())
+      )
+    : venues;
 
   // Show access restricted message if user cannot access leaderboard
   if (!canAccessLeaderboard) {
@@ -114,7 +150,7 @@ export default function LeaderboardScreen() {
         <Text style={styles.errorMessage}>{error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
-          onPress={() => fetchLeaderboard(defaultVenue?.id ?? null, 7)}
+          onPress={() => fetchLeaderboard(selectedVenue?.id ?? null, 7)}
         >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
@@ -128,12 +164,82 @@ export default function LeaderboardScreen() {
       <SafeAreaView style={styles.center} edges={['top', 'left', 'right']}>
         <Text style={styles.emptyTitle}>No Activity</Text>
         <Text style={styles.emptySubtitle}>
-          No verified matches found at {defaultVenue?.name} in the last 7 days.
+          No verified matches found at {selectedVenue?.name} in the last 7 days.
         </Text>
         <Text style={styles.emptyHint}>
           Play and verify matches to appear on the leaderboard!
         </Text>
+        {/* Venue selector in empty state */}
+        <TouchableOpacity
+          style={styles.venuePickerButton}
+          onPress={() => setVenuePickerVisible(true)}
+        >
+          <Ionicons name="location-outline" size={18} color="#007AFF" />
+          <Text style={styles.venuePickerButtonText}>Change Venue</Text>
+          <Ionicons name="chevron-down" size={16} color="#007AFF" />
+        </TouchableOpacity>
+        {renderVenuePickerModal()}
       </SafeAreaView>
+    );
+  }
+
+  // Venue picker modal renderer
+  function renderVenuePickerModal() {
+    return (
+      <Modal
+        visible={venuePickerVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setVenuePickerVisible(false)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Venue</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setVenuePickerVisible(false);
+                setVenueSearch("");
+              }}
+            >
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search venues..."
+            value={venueSearch}
+            onChangeText={setVenueSearch}
+            autoCorrect={false}
+          />
+          <FlatList
+            data={filteredVenues}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.venueOption,
+                  item.id === selectedVenueId && styles.venueOptionSelected,
+                ]}
+                onPress={() => handleVenueSelect(item.id)}
+              >
+                <View style={styles.venueOptionContent}>
+                  <Text style={styles.venueOptionName}>{item.name}</Text>
+                  {item.address && (
+                    <Text style={styles.venueOptionAddress}>{item.address}</Text>
+                  )}
+                </View>
+                {item.id === selectedVenueId && (
+                  <Ionicons name="checkmark" size={20} color="#007AFF" />
+                )}
+              </TouchableOpacity>
+            )}
+            ItemSeparatorComponent={() => <View style={styles.venueOptionSeparator} />}
+            ListEmptyComponent={
+              <Text style={styles.noVenuesText}>No venues found</Text>
+            }
+          />
+        </SafeAreaView>
+      </Modal>
     );
   }
 
@@ -142,10 +248,18 @@ export default function LeaderboardScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <Text style={styles.title}>Leaderboard</Text>
-        <Text style={styles.subtitle}>
-          {defaultVenue?.name} • Last 7 days
-        </Text>
+        <TouchableOpacity
+          style={styles.venueSelector}
+          onPress={() => setVenuePickerVisible(true)}
+        >
+          <Ionicons name="location-outline" size={16} color="#666" />
+          <Text style={styles.venueSelectorText}>{selectedVenue?.name}</Text>
+          <Ionicons name="chevron-down" size={14} color="#666" />
+        </TouchableOpacity>
+        <Text style={styles.subtitle}>Last 7 days</Text>
       </View>
+
+      {renderVenuePickerModal()}
 
       <FlatList
         data={entries}
@@ -179,7 +293,7 @@ export default function LeaderboardScreen() {
 
       <TouchableOpacity
         style={styles.refreshButton}
-        onPress={() => fetchLeaderboard(defaultVenue?.id ?? null, 7)}
+        onPress={() => fetchLeaderboard(selectedVenue?.id ?? null, 7)}
       >
         <Text style={styles.refreshButtonText}>Refresh</Text>
       </TouchableOpacity>
@@ -214,6 +328,95 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginTop: 4,
+  },
+  venueSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    alignSelf: "flex-start",
+    gap: 6,
+  },
+  venueSelectorText: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
+  },
+  venuePickerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#EFF6FF",
+    borderRadius: 8,
+    gap: 8,
+  },
+  venuePickerButtonText: {
+    fontSize: 14,
+    color: "#007AFF",
+    fontWeight: "500",
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  searchInput: {
+    margin: 16,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#f8f9fa",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    fontSize: 16,
+  },
+  venueOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  venueOptionSelected: {
+    backgroundColor: "#EFF6FF",
+  },
+  venueOptionContent: {
+    flex: 1,
+  },
+  venueOptionName: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  venueOptionAddress: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 2,
+  },
+  venueOptionSeparator: {
+    height: 1,
+    backgroundColor: "#eee",
+    marginHorizontal: 16,
+  },
+  noVenuesText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#666",
   },
   listContent: {
     padding: 16,
