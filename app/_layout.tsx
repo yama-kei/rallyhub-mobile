@@ -3,6 +3,7 @@ import { useUserActivityTracking } from "@/hooks/useUserActivityTracking";
 import { AuthProvider } from "@/lib/auth/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 
 // Inner component that uses hooks requiring AuthProvider
@@ -57,6 +58,7 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <AuthProvider>
+      <StatusBar style="dark" />
       <AppContent />
     </AuthProvider>
   );
