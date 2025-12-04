@@ -122,3 +122,4 @@ out/
 .sentryclirc
 firebase-debug.log
 
+.env

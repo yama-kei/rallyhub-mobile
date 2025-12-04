@@ -1,9 +1,9 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Button,
   ScrollView,
   StyleSheet,
   Text,
@@ -181,9 +181,9 @@ export default function PlayerProfileScreen() {
             ? "This profile could not be found."
             : "Sign in to view profiles of players you haven't played with."}
         </Text>
-        <View style={{ marginTop: 20 }}>
-          <Button title="Go Back" onPress={() => router.back()} />
-        </View>
+        <TouchableOpacity style={styles.goBackButton} onPress={() => router.back()}>
+          <Text style={styles.goBackButtonText}>Go Back</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -216,14 +216,15 @@ export default function PlayerProfileScreen() {
                 style={styles.input}
                 value={newName}
                 onChangeText={setNewName}
+                placeholderTextColor="#aaa"
               />
               <View style={styles.buttonRow}>
-                <Button title="Save" onPress={handleSaveName} />
-                <Button
-                  title="Cancel"
-                  onPress={() => setEditing(false)}
-                  color="#666"
-                />
+                <TouchableOpacity style={styles.saveButton} onPress={handleSaveName}>
+                  <Text style={styles.saveButtonText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => setEditing(false)}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
             </>
           ) : (
@@ -349,6 +350,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
+    padding: 24,
   },
 
   title: {
@@ -385,10 +387,11 @@ const styles = StyleSheet.create({
 
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 12,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 14,
     fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
 
   buttonRow: {
@@ -397,20 +400,50 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
+  saveButton: {
+    flex: 1,
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  cancelButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  cancelButtonText: {
+    color: "#666",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
   editBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    backgroundColor: "#eee",
-    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
   },
 
   editBtnText: {
     fontSize: 14,
     fontWeight: "600",
+    color: "#007AFF",
   },
 
   errorTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
     marginBottom: 12,
     textAlign: "center",
@@ -421,6 +454,21 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     paddingHorizontal: 32,
+    lineHeight: 24,
+  },
+
+  goBackButton: {
+    marginTop: 24,
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+  },
+
+  goBackButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 
   sectionTitle: {
@@ -439,8 +487,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 8,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 10,
     marginBottom: 8,
   },
 
@@ -473,10 +521,10 @@ const styles = StyleSheet.create({
   },
 
   claimButton: {
-    backgroundColor: "#007aff",
-    paddingVertical: 12,
+    backgroundColor: "#007AFF",
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
   },
 
