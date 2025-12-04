@@ -1,8 +1,8 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
-  Button,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -156,70 +156,110 @@ export default function ProfileScreen() {
             )}
             <Text style={styles.title}>My Profile</Text>
 
-            <Text style={styles.label}>Display Name:</Text>
-            <Text style={styles.value}>{profile.display_name}</Text>
+            {/* Profile Info Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Display Name</Text>
+              <Text style={styles.sectionValue}>{profile.display_name}</Text>
+            </View>
 
-            <Text style={styles.label}>Default Venue:</Text>
-            <Text style={styles.value}>
-              {defaultVenue ? defaultVenue.name : "Not set"}
-            </Text>
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Default Venue</Text>
+              <Text style={styles.sectionValue}>
+                {defaultVenue ? defaultVenue.name : "Not set"}
+              </Text>
+            </View>
 
-            <View style={{ marginTop: 24 }}>
-              <Button
-                title="Edit Profile"
+            {/* Action Buttons */}
+            <View style={styles.actionsContainer}>
+              <TouchableOpacity
+                style={styles.primaryButton}
                 onPress={() => router.push("/(tabs)/profile/edit")}
-              />
-              <View style={{ height: 12 }} />
-              <Button
-                title="Show My QR Code"
+              >
+                <Ionicons name="create-outline" size={20} color="#fff" />
+                <Text style={styles.primaryButtonText}>Edit Profile</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryButton}
                 onPress={() => router.push("/show-qr")}
-              />
+              >
+                <Ionicons name="qr-code-outline" size={20} color="#007AFF" />
+                <Text style={styles.secondaryButtonText}>Show My QR Code</Text>
+              </TouchableOpacity>
             </View>
 
             {/* ---- SIGNED IN ---- */}
             {session ? (
-              <View style={{ marginTop: 32 }}>
-                <Text style={styles.signedInText}>
-                  Signed in as {session.user.email}
-                </Text>
+              <View style={styles.authSection}>
+                <View style={styles.signedInCard}>
+                  <Ionicons name="checkmark-circle" size={24} color="#28a745" />
+                  <View style={styles.signedInInfo}>
+                    <Text style={styles.signedInLabel}>Signed in as</Text>
+                    <Text style={styles.signedInEmail}>{session.user.email}</Text>
+                  </View>
+                </View>
 
-                <Button title="Sign Out" onPress={signOut} />
+                <TouchableOpacity
+                  style={styles.signOutButton}
+                  onPress={signOut}
+                >
+                  <Text style={styles.signOutButtonText}>Sign Out</Text>
+                </TouchableOpacity>
               </View>
             ) : (
               /* ---- NOT SIGNED IN ---- */
-              <View style={styles.authContainer}>
-                <Text style={styles.label}>Sign-in status:</Text>
-                <Text style={styles.subMessage}>You are not signed in.</Text>
+              <View style={styles.authSection}>
+                <View style={styles.notSignedInCard}>
+                  <Ionicons name="person-circle-outline" size={24} color="#666" />
+                  <Text style={styles.notSignedInText}>You are not signed in</Text>
+                </View>
 
                 {/* Google Sign-In */}
-                <Button title="Sign In with Google" onPress={signInWithGoogle} />
-                <Text style={styles.orText}>or</Text>
+                <TouchableOpacity
+                  style={styles.googleButton}
+                  onPress={signInWithGoogle}
+                >
+                  <Ionicons name="logo-google" size={20} color="#fff" />
+                  <Text style={styles.googleButtonText}>Sign In with Google</Text>
+                </TouchableOpacity>
+
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
+                </View>
 
                 {/* Email Magic Link Section */}
                 <View style={styles.magicLinkSection}>
-                  <Text style={styles.magicLinkLabel}>
-                    Sign in with a magic link:
-                  </Text>
+                  <Text style={styles.magicLinkLabel}>Sign in with a magic link</Text>
                   <TextInput
                     style={styles.emailInput}
                     placeholder="Enter your email"
+                    placeholderTextColor="#aaa"
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  <Button
-                    title={sendingMagicLink ? "Sending..." : "Send Magic Link"}
+                  <TouchableOpacity
+                    style={[
+                      styles.magicLinkButton,
+                      (!email.trim() || sendingMagicLink) && styles.buttonDisabled,
+                    ]}
                     onPress={handleMagicLinkSignIn}
-                    disabled={sendingMagicLink}
-                  />
+                    disabled={sendingMagicLink || !email.trim()}
+                  >
+                    <Text style={styles.magicLinkButtonText}>
+                      {sendingMagicLink ? "Sending..." : "Send Magic Link"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
             {isDebugMode && (
-              <TouchableOpacity onPress={clearLocalAppData}>
-                <Text>Reset App</Text>
+              <TouchableOpacity style={styles.resetButton} onPress={clearLocalAppData}>
+                <Text style={styles.resetButtonText}>Reset App</Text>
               </TouchableOpacity>
             )}
 
@@ -264,48 +304,193 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "700",
-    marginBottom: 12,
+    marginBottom: 24,
   },
-  label: {
-    marginTop: 12,
+
+  // Profile Info Sections
+  section: {
+    marginBottom: 20,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 4,
+  },
+  sectionValue: {
+    fontSize: 18,
+    fontWeight: "500",
+  },
+
+  // Action Buttons
+  actionsContainer: {
+    marginTop: 8,
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 14,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  primaryButtonText: {
+    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
-  value: {
+  secondaryButton: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 14,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  secondaryButtonText: {
+    color: "#007AFF",
     fontSize: 16,
+    fontWeight: "600",
   },
-  subMessage: {
-    fontSize: 16,
-    marginBottom: 12,
+
+  // Auth Section
+  authSection: {
+    marginTop: 32,
   },
-  authContainer: {
-    marginTop: 12,
+  signedInCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0fff4",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 12,
   },
-  signedInText: {
-    fontSize: 16,
-    marginBottom: 12,
+  signedInInfo: {
+    flex: 1,
   },
-  magicLinkSection: {
-    marginTop: 4,
-  },
-  orText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginVertical: 12,
+  signedInLabel: {
+    fontSize: 14,
     color: "#666",
   },
-  magicLinkLabel: {
+  signedInEmail: {
     fontSize: 16,
-    marginBottom: 4,
+    fontWeight: "600",
+    color: "#333",
+  },
+  signOutButton: {
+    borderWidth: 1,
+    borderColor: "#dc3545",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  signOutButtonText: {
+    color: "#dc3545",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  // Not Signed In
+  notSignedInCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 12,
+  },
+  notSignedInText: {
+    fontSize: 16,
+    color: "#666",
+  },
+
+  // Google Button
+  googleButton: {
+    backgroundColor: "#DB4437",
+    paddingVertical: 14,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  googleButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  // Divider
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ddd",
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: "#888",
+    fontWeight: "500",
+  },
+
+  // Magic Link Section
+  magicLinkSection: {
+    marginTop: 0,
+  },
+  magicLinkLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
   },
   emailInput: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 12,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 14,
     fontSize: 16,
     marginBottom: 12,
+    backgroundColor: "#f9f9f9",
+  },
+  magicLinkButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  magicLinkButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonDisabled: {
+    backgroundColor: "#ccc",
+  },
+
+  // Debug Reset Button
+  resetButton: {
+    marginTop: 40,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#dee2e6",
+    alignSelf: "center",
+  },
+  resetButtonText: {
+    fontSize: 12,
+    color: "#dc3545",
+    fontWeight: "600",
   },
 });

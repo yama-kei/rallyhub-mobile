@@ -1,11 +1,13 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
-  Button,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -99,32 +101,44 @@ export default function EditProfileScreen() {
   // UI
   //
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Text style={styles.title}>Edit Profile</Text>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Edit Profile</Text>
 
-      <Text style={styles.label}>Display Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your name"
-        value={displayName}
-        onChangeText={setDisplayName}
-      />
+        <View style={styles.section}>
+          <Text style={styles.label}>Display Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your name"
+            placeholderTextColor="#aaa"
+            value={displayName}
+            onChangeText={setDisplayName}
+          />
+        </View>
 
-      <Text style={styles.label}>Default Venue</Text>
-      <VenueAutocomplete
-        onSelectVenue={setSelectedVenue}
-        selectedVenue={selectedVenue}
-        placeholder="Search for a default venue..."
-      />
-      <Text style={styles.helpText}>
-        This venue will be automatically selected when creating new matches.
-      </Text>
+        <View style={styles.section}>
+          <Text style={styles.label}>Default Venue</Text>
+          <VenueAutocomplete
+            onSelectVenue={setSelectedVenue}
+            selectedVenue={selectedVenue}
+            placeholder="Search for a default venue..."
+          />
+          <Text style={styles.helpText}>
+            This venue will be automatically selected when creating new matches.
+          </Text>
+        </View>
 
-      <View style={styles.buttons}>
-        <Button title="Save" onPress={handleSave} />
-        <View style={{ height: 12 }} />
-        <Button title="Cancel" onPress={() => router.back()} color="#666" />
-      </View>
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleSave}>
+            <Ionicons name="checkmark" size={20} color="#fff" />
+            <Text style={styles.primaryButtonText}>Save</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -133,37 +147,72 @@ export default function EditProfileScreen() {
 // Styles
 //
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingTop: 12,
+  safeArea: {
     flex: 1,
     backgroundColor: "#fff",
   },
+  container: {
+    padding: 16,
+    paddingTop: 12,
+    paddingBottom: 40,
+    flexGrow: 1,
+    backgroundColor: "#fff",
+  },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "700",
     marginBottom: 24,
   },
+  section: {
+    marginBottom: 24,
+  },
   label: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginTop: 16,
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
   },
   input: {
-    marginTop: 6,
-    padding: 12,
+    padding: 14,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
+    borderColor: "#ddd",
+    borderRadius: 10,
     fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
   helpText: {
-    marginTop: 6,
+    marginTop: 8,
     fontSize: 14,
     color: "#666",
     fontStyle: "italic",
   },
-  buttons: {
-    marginTop: 32,
+  buttonsContainer: {
+    marginTop: 16,
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 14,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  primaryButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  cancelButton: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    color: "#666",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
