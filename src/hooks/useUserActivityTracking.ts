@@ -1,16 +1,11 @@
 import { featureFlags } from "@/config/featureFlags";
 import { useAuth } from "@/lib/auth/auth";
-import { emitUserActivity } from "@/lib/supabase/userActivity";
-import { randomUUID } from "@/lib/utils/uuid";
-import * as Application from "expo-application";
-import Constants from "expo-constants";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { emitUserActivity, getDeviceId, getAppVersion } from "@/lib/supabase/userActivity";
 import { useEffect, useRef } from "react";
 import { AppState, Platform } from "react-native";
 
 // Throttle emission to once per day
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const UNKNOWN_DEVICE = "unknown-device";
 
 /**
  * Hook to track user activity (DAU/MAU metrics).
@@ -49,35 +44,11 @@ export function useUserActivityTracking() {
       console.log("📊 [useUserActivityTracking] Emitting user activity metrics...");
 
       try {
-        // Get device ID
-        let deviceId = UNKNOWN_DEVICE;
-        try {
-          if (Platform.OS === "web") {
-            // For web, use a persistent identifier based on localStorage
-            const webDeviceId = await AsyncStorage.getItem('web_device_id');
-            if (webDeviceId) {
-              deviceId = webDeviceId;
-            } else {
-              const newWebDeviceId = randomUUID();
-              await AsyncStorage.setItem('web_device_id', newWebDeviceId);
-              deviceId = newWebDeviceId;
-            }
-          } else if (Platform.OS === "android" && typeof Application.getAndroidId === "function") {
-            const id = Application.getAndroidId();
-            if (id) deviceId = id.toString();
-          } else if (
-            Platform.OS === "ios" &&
-            typeof Application.getIosIdForVendorAsync === "function"
-          ) {
-            const iosId = await Application.getIosIdForVendorAsync();
-            if (iosId) deviceId = iosId;
-          }
-        } catch (e) {
-          console.warn("[useUserActivityTracking] Failed to get device ID", e);
-        }
+        // Get device ID using shared helper
+        const deviceId = await getDeviceId();
 
-        // Get app version
-        const appVersion = Constants.expoConfig?.version || "1.0.0";
+        // Get app version using shared helper
+        const appVersion = getAppVersion();
 
         // Determine if user has account (authenticated session)
         const hasAccount = !!session?.user?.id;

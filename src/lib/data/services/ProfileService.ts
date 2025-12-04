@@ -1,5 +1,6 @@
 // src/lib/data/services/ProfileService.ts
 import { RemoteProfile } from "@/lib/supabase/types";
+import { trackUserActivity } from "@/lib/supabase/userActivity";
 import { randomUUID } from "@/lib/utils/uuid";
 import { ProfileRepository } from "../repositories/ProfileRepository";
 
@@ -72,6 +73,14 @@ export class ProfileService implements IProfileService {
     };
 
     await this.repo.save(full);
+
+    // Track profile_update activity only when updating an existing profile (non-blocking)
+    if (existing) {
+      trackUserActivity('profile_update').catch((err) => {
+        console.error("[ProfileService] Failed to track profile_update activity:", err);
+      });
+    }
+
     return full;
   }
 

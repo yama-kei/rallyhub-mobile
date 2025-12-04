@@ -4,6 +4,7 @@ import { usePlayerSlotStore } from "@/lib/data/hooks/usePlayerSlotStore";
 import type { ResolvedPlayer } from "@/lib/data/services/PlayerIdentityService";
 import { PlayerIdentityService } from "@/lib/data/services/PlayerIdentityService";
 import type { RallyHubQRPayload } from "@/lib/qr/QRPayloadBuilder";
+import { trackUserActivity } from "@/lib/supabase/userActivity";
 
 import { dataEnvironment } from "@/lib/data/DataEnvironment";
 import { MatchService } from "@/lib/data/services/MatchService";
@@ -77,6 +78,11 @@ export class PlayScreenController {
         throw new Error("No available slots to assign this player.");
       }
     }
+
+    // Track qr_scan activity (non-blocking)
+    trackUserActivity('qr_scan').catch((err) => {
+      console.error("[PlayScreenController] Failed to track qr_scan activity:", err);
+    });
 
     return resolved;
   }
