@@ -114,24 +114,34 @@ export default function ProfileScreen() {
 
   async function clearLocalAppData() {
     try {
-      // Clear AsyncStorage
+      // Clear AsyncStorage (works on all platforms)
       await AsyncStorage.clear();
 
-      // Clear browser storages
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear browser storages only on web platform
+      if (Platform.OS === "web") {
+        if (typeof localStorage !== "undefined") {
+          localStorage.clear();
+        }
+        if (typeof sessionStorage !== "undefined") {
+          sessionStorage.clear();
+        }
 
-      // Clear IndexedDB databases (optional)
-      const dbs = await indexedDB.databases();
-      for (const db of dbs) {
-        if (db.name) {
-          indexedDB.deleteDatabase(db.name);
+        // Clear IndexedDB databases (optional, web only)
+        if (typeof indexedDB !== "undefined" && indexedDB.databases) {
+          const dbs = await indexedDB.databases();
+          for (const db of dbs) {
+            if (db.name) {
+              indexedDB.deleteDatabase(db.name);
+            }
+          }
         }
       }
 
       console.log("Local data cleared successfully!");
+      Alert.alert("Success", "App data has been reset. Please restart the app.");
     } catch (e) {
       console.error("Error clearing local data:", e);
+      Alert.alert("Error", "Failed to reset app data. Please try again.");
     }
   }
 
