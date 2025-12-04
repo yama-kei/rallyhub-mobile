@@ -2,6 +2,7 @@
 
 import { RemoteMatch } from "@/lib/supabase/types";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import { trackUserActivity } from "@/lib/supabase/userActivity";
 import { randomUUID } from "@/lib/utils/uuid";
 import { MatchRepository } from "../repositories/MatchRepository";
 import { ProfileService } from "./ProfileService";
@@ -351,6 +352,14 @@ export class MatchService implements IMatchService {
 
     // Upload to backend if user is signed in (non-blocking)
     this.scheduleBackgroundUpload(match);
+
+    // Track game_submitted activity (non-blocking)
+    trackUserActivity('game_submitted', {
+      match_id: match.id,
+      venue_id: match.venue_id ?? undefined,
+    }).catch((err) => {
+      console.error("[MatchService] Failed to track game_submitted activity:", err);
+    });
 
     return match;
   }
