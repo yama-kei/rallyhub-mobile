@@ -217,6 +217,7 @@ export default function VenueListScreen() {
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
                     contentContainerStyle={{ padding: 12 }}
+                    alwaysBounceVertical={true}
                     refreshControl={
                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                     }

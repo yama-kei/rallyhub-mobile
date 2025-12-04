@@ -190,6 +190,7 @@ export default function EditVenueScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
+        alwaysBounceVertical={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
