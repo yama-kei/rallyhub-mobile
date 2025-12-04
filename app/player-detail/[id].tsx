@@ -24,6 +24,13 @@ import {
 } from "@/lib/data/utils/playerStats";
 import { RemoteMatch, RemoteProfile } from "@/lib/supabase/types";
 
+/**
+ * Helper function to pluralize a word based on count
+ */
+function pluralize(count: number, singular: string, plural: string): string {
+  return count === 1 ? singular : plural;
+}
+
 export default function PlayerProfileScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -296,67 +303,70 @@ export default function PlayerProfileScreen() {
         </View>
 
         {/* Head-to-Head Stats - only shown when viewing another player's profile */}
-        {session && !isLocalUser && headToHeadStats && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your History with {profile.display_name}</Text>
+        {session && !isLocalUser && headToHeadStats && (() => {
+          const hasAnyGames = headToHeadStats.paired.totalGames > 0 || headToHeadStats.opponent.totalGames > 0;
+          return (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your History with {profile.display_name}</Text>
 
-            {loadingMatches ? (
-              <ActivityIndicator size="small" style={{ marginTop: 12 }} />
-            ) : (headToHeadStats.paired.totalGames > 0 || headToHeadStats.opponent.totalGames > 0) ? (
-              <View style={styles.statsContainer}>
-                {/* Paired Stats */}
-                <View style={styles.statCard}>
-                  <Text style={styles.statCardTitle}>As Teammates</Text>
-                  {headToHeadStats.paired.totalGames > 0 ? (
-                    <>
-                      <Text style={styles.statGames}>
-                        {headToHeadStats.paired.totalGames} {headToHeadStats.paired.totalGames === 1 ? 'game' : 'games'}
-                      </Text>
-                      <View style={styles.statRow}>
-                        <View style={styles.statItem}>
-                          <Text style={styles.statNumber}>{headToHeadStats.paired.wins}</Text>
-                          <Text style={styles.statLabel}>Wins</Text>
+              {loadingMatches ? (
+                <ActivityIndicator size="small" style={{ marginTop: 12 }} />
+              ) : hasAnyGames ? (
+                <View style={styles.statsContainer}>
+                  {/* Paired Stats */}
+                  <View style={styles.statCard}>
+                    <Text style={styles.statCardTitle}>As Teammates</Text>
+                    {headToHeadStats.paired.totalGames > 0 ? (
+                      <>
+                        <Text style={styles.statGames}>
+                          {headToHeadStats.paired.totalGames} {pluralize(headToHeadStats.paired.totalGames, 'game', 'games')}
+                        </Text>
+                        <View style={styles.statRow}>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.paired.wins}</Text>
+                            <Text style={styles.statLabel}>Wins</Text>
+                          </View>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.paired.losses}</Text>
+                            <Text style={styles.statLabel}>Losses</Text>
+                          </View>
                         </View>
-                        <View style={styles.statItem}>
-                          <Text style={styles.statNumber}>{headToHeadStats.paired.losses}</Text>
-                          <Text style={styles.statLabel}>Losses</Text>
-                        </View>
-                      </View>
-                    </>
-                  ) : (
-                    <Text style={styles.noStatsText}>No games together yet</Text>
-                  )}
-                </View>
+                      </>
+                    ) : (
+                      <Text style={styles.noStatsText}>No games together yet</Text>
+                    )}
+                  </View>
 
-                {/* Opponent Stats */}
-                <View style={styles.statCard}>
-                  <Text style={styles.statCardTitle}>As Opponents</Text>
-                  {headToHeadStats.opponent.totalGames > 0 ? (
-                    <>
-                      <Text style={styles.statGames}>
-                        {headToHeadStats.opponent.totalGames} {headToHeadStats.opponent.totalGames === 1 ? 'game' : 'games'}
-                      </Text>
-                      <View style={styles.statRow}>
-                        <View style={styles.statItem}>
-                          <Text style={styles.statNumber}>{headToHeadStats.opponent.wins}</Text>
-                          <Text style={styles.statLabel}>Wins</Text>
+                  {/* Opponent Stats */}
+                  <View style={styles.statCard}>
+                    <Text style={styles.statCardTitle}>As Opponents</Text>
+                    {headToHeadStats.opponent.totalGames > 0 ? (
+                      <>
+                        <Text style={styles.statGames}>
+                          {headToHeadStats.opponent.totalGames} {pluralize(headToHeadStats.opponent.totalGames, 'game', 'games')}
+                        </Text>
+                        <View style={styles.statRow}>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.opponent.wins}</Text>
+                            <Text style={styles.statLabel}>Wins</Text>
+                          </View>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.opponent.losses}</Text>
+                            <Text style={styles.statLabel}>Losses</Text>
+                          </View>
                         </View>
-                        <View style={styles.statItem}>
-                          <Text style={styles.statNumber}>{headToHeadStats.opponent.losses}</Text>
-                          <Text style={styles.statLabel}>Losses</Text>
-                        </View>
-                      </View>
-                    </>
-                  ) : (
-                    <Text style={styles.noStatsText}>No games against yet</Text>
-                  )}
+                      </>
+                    ) : (
+                      <Text style={styles.noStatsText}>No games against yet</Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            ) : (
-              <Text style={styles.emptyMatches}>No verified games with this player yet</Text>
-            )}
-          </View>
-        )}
+              ) : (
+                <Text style={styles.emptyMatches}>No verified games with this player yet</Text>
+              )}
+            </View>
+          );
+        })()}
 
         {/* Verified Matches Section - only shown when user is signed in */}
         {session && (
