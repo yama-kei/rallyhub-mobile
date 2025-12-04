@@ -174,24 +174,27 @@ export default function PlayScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>New Match</Text>
 
-      <View style={styles.teamsContainer}>
-        {/* Players Side 1 */}
-        <View style={styles.teamColumn}>
-          <Text style={styles.sideLabel}>Side 1</Text>
-          {renderSlot(1, 0)}
-          {renderSlot(1, 1)}
-        </View>
+      {/* Teams Card - contained layout like match detail screen */}
+      <View style={styles.teamsCard}>
+        <View style={styles.teamsContainer}>
+          {/* Players Side 1 */}
+          <View style={styles.teamColumn}>
+            <Text style={styles.sideLabel}>Side 1</Text>
+            {renderSlot(1, 0)}
+            {renderSlot(1, 1)}
+          </View>
 
-        {/* VS Indicator */}
-        <View style={styles.vsContainer}>
-          <Text style={styles.vsText}>VS</Text>
-        </View>
+          {/* VS Indicator - centered between teams */}
+          <View style={styles.vsContainer}>
+            <Text style={styles.vsText}>VS</Text>
+          </View>
 
-        {/* Players Side 2 */}
-        <View style={styles.teamColumn}>
-          <Text style={styles.sideLabel}>Side 2</Text>
-          {renderSlot(2, 0)}
-          {renderSlot(2, 1)}
+          {/* Players Side 2 */}
+          <View style={styles.teamColumn}>
+            <Text style={styles.sideLabel}>Side 2</Text>
+            {renderSlot(2, 0)}
+            {renderSlot(2, 1)}
+          </View>
         </View>
       </View>
 
@@ -243,46 +246,51 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
     backgroundColor: "#fff",
   },
 
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+
+  teamsCard: {
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 8,
+    marginBottom: 24,
   },
 
   teamsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
   },
 
   venueSection: {
-    marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 16,
   },
 
   sectionLabel: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 14,
+    color: "#666",
     marginBottom: 8,
   },
 
   teamColumn: {
     flex: 1,
-    marginHorizontal: 4,
   },
 
   sideLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 8,
-    color: "#333",
+    color: "#666",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -290,23 +298,24 @@ const styles = StyleSheet.create({
   vsContainer: {
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 8,
-    marginTop: 24,
+    paddingHorizontal: 4,
   },
 
   vsText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
-    color: "#666",
+    color: "#999",
     letterSpacing: 1,
   },
 
   slot: {
-    padding: 16,
-    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#aaa",
-    marginVertical: 6,
+    borderColor: "#ddd",
+    marginVertical: 4,
+    backgroundColor: "#fff",
   },
 
   slotActive: {
@@ -315,20 +324,22 @@ const styles = StyleSheet.create({
   },
 
   slotLabel: {
-    fontSize: 16,
+    fontSize: 15,
+    textAlign: "center",
+    color: "#333",
   },
 
   btnPrimary: {
     backgroundColor: "#28a745",
-    padding: 14,
-    borderRadius: 12,
-    marginTop: 20,
+    paddingVertical: 14,
+    borderRadius: 10,
+    marginTop: 8,
   },
 
   btnPrimaryText: {
     color: "#fff",
     textAlign: "center",
-    fontWeight: "700",
-    fontSize: 18,
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
