@@ -286,6 +286,7 @@ export default function LeaderboardScreen() {
         )}
         contentContainerStyle={styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        alwaysBounceVertical={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

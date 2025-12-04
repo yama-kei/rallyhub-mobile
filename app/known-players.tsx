@@ -114,6 +114,7 @@ export default function KnownPlayersScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 40 }}
+        alwaysBounceVertical={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

@@ -109,6 +109,7 @@ export default function MatchListScreen() {
           />
         )}
         contentContainerStyle={{ paddingVertical: 16 }}
+        alwaysBounceVertical={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

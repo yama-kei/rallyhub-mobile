@@ -224,6 +224,7 @@ export default function MatchDetailScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={styles.container}
+        alwaysBounceVertical={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

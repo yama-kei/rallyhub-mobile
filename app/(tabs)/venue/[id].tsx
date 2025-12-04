@@ -183,6 +183,7 @@ export default function VenueDetailScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scroll}
+        alwaysBounceVertical={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
