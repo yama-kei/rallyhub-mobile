@@ -1,4 +1,4 @@
-# 🚀 RallyHub — AI-Accelerated Pickleball Match Tracking App
+# 🚀 RallyHub — Pickleball Match Tracking App
 
 RallyHub is a cross-platform mobile application (iOS + Android) built with **Expo + React Native** and a **Supabase** backend.  
 It enables pickleball players to seamlessly:
@@ -11,7 +11,7 @@ It enables pickleball players to seamlessly:
 - Maintain a clean match history  
 - View leaderboards across venues  
 
-Developed end-to-end in **10 days** by a solo engineer using **Generative AI** as a force multiplier.
+Initial version is developed end-to-end in **10 days** by a solo engineer using **Generative AI** as a force multiplier.
 
 ---
 
@@ -73,6 +73,7 @@ Developed end-to-end in **10 days** by a solo engineer using **Generative AI** a
 
 ## 📐 Architecture Overview
 
+```text
 ┌──────────────────────────────┐
 │ Mobile App (Expo)            │
 │ - Auth (Google/Apple/Magic)  │
@@ -99,6 +100,7 @@ Developed end-to-end in **10 days** by a solo engineer using **Generative AI** a
 │ - leaderboard_stats (MV)     │
 │ - Triggers + RLS Policies    │
 └──────────────────────────────┘
+```
 
 ---
 
