@@ -292,12 +292,6 @@ export default function LeaderboardScreen() {
         }
       />
 
-      <TouchableOpacity
-        style={styles.refreshButton}
-        onPress={() => fetchLeaderboard(selectedVenue?.id ?? null, 7)}
-      >
-        <Text style={styles.refreshButtonText}>Refresh</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -465,18 +459,6 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 8,
-  },
-  refreshButton: {
-    margin: 16,
-    backgroundColor: "#007AFF",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  refreshButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
   loadingText: {
     marginTop: 12,
