@@ -43,7 +43,8 @@ export class ProfileService implements IProfileService {
   }
 
   /**
-   * Save full or partial profile. Missing fields auto-filled.
+   * Save full or partial profile. If a profile with the same ID exists,
+   * the provided fields are merged with existing data. New profiles use defaults.
    */
   async upsertProfile(
     profile: Partial<RemoteProfile>
@@ -54,15 +55,19 @@ export class ProfileService implements IProfileService {
 
     const now = new Date().toISOString();
 
+    // Try to get existing profile to merge with
+    const existing = await this.repo.getById(profile.id);
+
     const full: RemoteProfile = {
+      // Start with existing data if available, otherwise use defaults
       id: profile.id,
-      user_id: profile.user_id ?? null,
-      display_name: profile.display_name ?? "Unnamed Player",
-      is_placeholder: profile.is_placeholder ?? false,
-      placeholder_code: profile.placeholder_code ?? null,
-      claimed_by: profile.claimed_by ?? null,
-      default_venue_id: profile.default_venue_id ?? null,
-      created_at: profile.created_at ?? now,
+      user_id: profile.user_id ?? existing?.user_id ?? null,
+      display_name: profile.display_name ?? existing?.display_name ?? "Unnamed Player",
+      is_placeholder: profile.is_placeholder ?? existing?.is_placeholder ?? false,
+      placeholder_code: profile.placeholder_code ?? existing?.placeholder_code ?? null,
+      claimed_by: profile.claimed_by ?? existing?.claimed_by ?? null,
+      default_venue_id: profile.default_venue_id ?? existing?.default_venue_id ?? null,
+      created_at: profile.created_at ?? existing?.created_at ?? now,
       updated_at: now,
     };
 

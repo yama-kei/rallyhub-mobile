@@ -61,15 +61,32 @@ export class LocalProfileLinkService implements ILocalProfileLinkService {
   }
 
   /**
-   * Create a link if missing — used after user selects/creates a profile
+   * Create or update a link to ensure this device is linked to the specified profile.
+   * If a link already exists but points to a different profile, it will be updated.
    */
   async ensureLinkForDevice(profileId: string): Promise<RemoteLocalProfileLink> {
     const deviceId = await this.getCurrentDeviceId();
 
-    // Already linked?
+    // Check if device already has a link
     const existing = await this.repo.getByLocalId(deviceId);
-    if (existing) return existing;
+    
+    if (existing) {
+      // If already linked to the same profile, return existing link
+      if (existing.profile_id === profileId) {
+        return existing;
+      }
+      
+      // Link exists but points to a different profile - update it
+      console.log(`[LocalProfileLinkService] Updating device link from profile ${existing.profile_id} to ${profileId}`);
+      const updated: RemoteLocalProfileLink = {
+        ...existing,
+        profile_id: profileId,
+      };
+      await this.repo.save(updated);
+      return updated;
+    }
 
+    // No existing link - create a new one
     const now = new Date().toISOString();
     const link: RemoteLocalProfileLink = {
       id: randomUUID(),
