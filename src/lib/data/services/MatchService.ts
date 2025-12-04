@@ -356,7 +356,7 @@ export class MatchService implements IMatchService {
     // Track game_submitted activity (non-blocking)
     trackUserActivity('game_submitted', {
       match_id: match.id,
-      venue_id: match.venue_id ?? undefined,
+      venue_id: match.venue_id,
     }).catch((err) => {
       console.error("[MatchService] Failed to track game_submitted activity:", err);
     });

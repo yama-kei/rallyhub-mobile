@@ -27,7 +27,7 @@ export type ActivityType =
  * Metadata for game-related activity events.
  */
 export interface GameActivityMetadata {
-  venue_id?: string;
+  venue_id?: string | null;
   match_id?: string;
 }
 
@@ -103,8 +103,9 @@ export async function emitUserActivity({
 
 /**
  * Helper function to get device ID based on platform.
+ * Exported for use in useUserActivityTracking hook.
  */
-async function getDeviceId(): Promise<string> {
+export async function getDeviceId(): Promise<string> {
   try {
     if (Platform.OS === "web") {
       const webDeviceId = await AsyncStorage.getItem(WEB_DEVICE_ID_KEY);
@@ -122,15 +123,16 @@ async function getDeviceId(): Promise<string> {
       if (iosId) return iosId;
     }
   } catch (e) {
-    console.warn("[trackUserActivity] Failed to get device ID", e);
+    console.warn("[userActivity] Failed to get device ID", e);
   }
   return UNKNOWN_DEVICE;
 }
 
 /**
  * Helper function to get app version.
+ * Exported for use in useUserActivityTracking hook.
  */
-function getAppVersion(): string {
+export function getAppVersion(): string {
   return Constants.expoConfig?.version || "1.0.0";
 }
 
