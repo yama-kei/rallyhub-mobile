@@ -18,7 +18,18 @@ import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkSt
 import { useProfileStore } from "@/lib/data/hooks/useProfileStore";
 import { MatchService } from "@/lib/data/services/MatchService";
 import { ProfileService } from "@/lib/data/services/ProfileService";
+import {
+  calculateHeadToHeadStats,
+  PlayerHeadToHeadStats,
+} from "@/lib/data/utils/playerStats";
 import { RemoteMatch, RemoteProfile } from "@/lib/supabase/types";
+
+/**
+ * Helper function to pluralize a word based on count
+ */
+function pluralize(count: number, singular: string, plural: string): string {
+  return count === 1 ? singular : plural;
+}
 
 export default function PlayerProfileScreen() {
   const router = useRouter();
@@ -35,6 +46,7 @@ export default function PlayerProfileScreen() {
   const [verifiedMatches, setVerifiedMatches] = useState<RemoteMatch[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [canViewProfile, setCanViewProfile] = useState(false);
+  const [headToHeadStats, setHeadToHeadStats] = useState<PlayerHeadToHeadStats | null>(null);
 
   // Create service instances once - they are stateless
   const profileService = useMemo(() => new ProfileService(), []);
@@ -119,11 +131,22 @@ export default function PlayerProfileScreen() {
       setLoadingMatches(true);
       const matches = await matchService.fetchVerifiedMatchesByProfileId(profile.id);
       setVerifiedMatches(matches);
+
+      // Calculate head-to-head stats if we have the current user's profile ID
+      // and we're not viewing our own profile
+      const currentUserProfileId = currentLink?.profile_id;
+      if (currentUserProfileId && currentUserProfileId !== profile.id) {
+        const stats = calculateHeadToHeadStats(matches, currentUserProfileId, profile.id);
+        setHeadToHeadStats(stats);
+      } else {
+        setHeadToHeadStats(null);
+      }
+
       setLoadingMatches(false);
     }
 
     loadMatches();
-  }, [canViewProfile, profile, session]);
+  }, [canViewProfile, profile, session, currentLink]);
 
   //
   // Prepare editing defaults
@@ -279,6 +302,72 @@ export default function PlayerProfileScreen() {
           <Text style={styles.label}>Profile ID</Text>
           <Text style={[styles.value, styles.small]}>{profile.id}</Text>
         </View>
+
+        {/* Head-to-Head Stats - only shown when viewing another player's profile */}
+        {session && !isLocalUser && headToHeadStats && (() => {
+          const hasAnyGames = headToHeadStats.paired.totalGames > 0 || headToHeadStats.opponent.totalGames > 0;
+          return (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your History with {profile.display_name}</Text>
+
+              {loadingMatches ? (
+                <ActivityIndicator size="small" style={{ marginTop: 12 }} />
+              ) : hasAnyGames ? (
+                <View style={styles.statsContainer}>
+                  {/* Paired Stats */}
+                  <View style={styles.statCard}>
+                    <Text style={styles.statCardTitle}>As Teammates</Text>
+                    {headToHeadStats.paired.totalGames > 0 ? (
+                      <>
+                        <Text style={styles.statGames}>
+                          {headToHeadStats.paired.totalGames} {pluralize(headToHeadStats.paired.totalGames, 'game', 'games')}
+                        </Text>
+                        <View style={styles.statRow}>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.paired.wins}</Text>
+                            <Text style={styles.statLabel}>Wins</Text>
+                          </View>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.paired.losses}</Text>
+                            <Text style={styles.statLabel}>Losses</Text>
+                          </View>
+                        </View>
+                      </>
+                    ) : (
+                      <Text style={styles.noStatsText}>No games together yet</Text>
+                    )}
+                  </View>
+
+                  {/* Opponent Stats */}
+                  <View style={styles.statCard}>
+                    <Text style={styles.statCardTitle}>As Opponents</Text>
+                    {headToHeadStats.opponent.totalGames > 0 ? (
+                      <>
+                        <Text style={styles.statGames}>
+                          {headToHeadStats.opponent.totalGames} {pluralize(headToHeadStats.opponent.totalGames, 'game', 'games')}
+                        </Text>
+                        <View style={styles.statRow}>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.opponent.wins}</Text>
+                            <Text style={styles.statLabel}>Wins</Text>
+                          </View>
+                          <View style={styles.statItem}>
+                            <Text style={styles.statNumber}>{headToHeadStats.opponent.losses}</Text>
+                            <Text style={styles.statLabel}>Losses</Text>
+                          </View>
+                        </View>
+                      </>
+                    ) : (
+                      <Text style={styles.noStatsText}>No games against yet</Text>
+                    )}
+                  </View>
+                </View>
+              ) : (
+                <Text style={styles.emptyMatches}>No verified games with this player yet</Text>
+              )}
+            </View>
+          );
+        })()}
 
         {/* Verified Matches Section - only shown when user is signed in */}
         {session && (
@@ -540,5 +629,62 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: "center",
     lineHeight: 18,
+  },
+
+  // Stats styles
+  statsContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+
+  statCard: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+  },
+
+  statCardTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+
+  statGames: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 12,
+  },
+
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+
+  statItem: {
+    alignItems: "center",
+  },
+
+  statNumber: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#333",
+  },
+
+  statLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 4,
+  },
+
+  noStatsText: {
+    fontSize: 13,
+    color: "#999",
+    fontStyle: "italic",
+    marginTop: 8,
   },
 });
