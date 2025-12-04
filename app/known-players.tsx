@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkStore";
@@ -93,12 +94,12 @@ export default function KnownPlayersScreen() {
   //
   if (knownPlayers.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
+      <SafeAreaView style={styles.emptyContainer} edges={['bottom', 'left', 'right']}>
         <Text style={styles.emptyText}>No known players yet.</Text>
         <Text style={styles.emptySub}>
           Scan a player’s QR code to play a game with them.
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
