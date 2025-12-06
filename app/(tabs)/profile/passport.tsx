@@ -2,21 +2,19 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import QRCode from "react-native-qrcode-svg";
 
+import { appConfig } from "@/config/appConfig";
 import { useLocalProfileLinkStore } from "@/lib/data/hooks/useLocalProfileLinkStore";
 import { useMatchStore } from "@/lib/data/hooks/useMatchStore";
 import { useProfileStore } from "@/lib/data/hooks/useProfileStore";
 import { useVenueStore } from "@/lib/data/hooks/useVenueStore";
-import type { RemoteMatch, RemoteProfile, RemoteVenue } from "@/lib/supabase/types";
 
 type PassportStats = {
   gamesCount: number;
@@ -189,7 +187,7 @@ export default function PlayerPassportScreen() {
 
   // Public profile URL for QR
   const publicProfileUrl = profile
-    ? `https://rallyhub.io/p/${profile.id}`
+    ? `${appConfig.publicProfileBaseUrl}/${profile.id}`
     : null;
 
   // Loading state
