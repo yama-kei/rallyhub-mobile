@@ -191,6 +191,14 @@ export default function ProfileScreen() {
 
               <TouchableOpacity
                 style={styles.secondaryButton}
+                onPress={() => router.push("/(tabs)/profile/passport")}
+              >
+                <Ionicons name="card-outline" size={20} color="#007AFF" />
+                <Text style={styles.secondaryButtonText}>View Player Passport</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryButton}
                 onPress={() => router.push("/show-qr")}
               >
                 <Ionicons name="qr-code-outline" size={20} color="#007AFF" />
